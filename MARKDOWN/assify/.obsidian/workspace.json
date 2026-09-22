@@ -99,7 +99,7 @@
             "state": {
               "type": "backlink",
               "state": {
-                "file": "RAG/RAG.md",
+                "file": "basics/obsidian basics/Markdown Cheat Sheet.md",
                 "collapseAll": false,
                 "extraContext": false,
                 "sortOrder": "alphabetical",
@@ -118,7 +118,7 @@
             "state": {
               "type": "outgoing-link",
               "state": {
-                "file": "RAG/RAG.md",
+                "file": "basics/obsidian basics/Markdown Cheat Sheet.md",
                 "linksCollapsed": false,
                 "unlinkedCollapsed": true
               },
@@ -161,7 +161,7 @@
             "state": {
               "type": "outline",
               "state": {
-                "file": "RAG/RAG.md",
+                "file": "basics/obsidian basics/Markdown Cheat Sheet.md",
                 "followCursor": false,
                 "showSearch": false,
                 "searchQuery": ""
@@ -176,7 +176,7 @@
             "state": {
               "type": "footnotes",
               "state": {
-                "file": "RAG/RAG.md"
+                "file": "basics/obsidian basics/Markdown Cheat Sheet.md"
               },
               "icon": "lucide-file-signature",
               "title": "Footnotes"
@@ -204,10 +204,12 @@
   },
   "active": "d5b0b7e1cd6f2a6d",
   "lastOpenFiles": [
-    "Welcome.md",
-    "RAG/RAG.md",
+    "ATTACHMENTS/Pasted image 20260922091213.png",
+    "ATTACHMENTS/Pasted image 20260922091153.png",
     "basics/obsidian basics/Markdown Cheat Sheet.md",
+    "Welcome.md",
     "2026-09-19.md",
+    "RAG/RAG.md",
     "ATTACHMENTS",
     "k.md",
     "IF TEARS.md",
