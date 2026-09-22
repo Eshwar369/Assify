@@ -1,1 +1,5 @@
 .venv/
+data/
+*.db
+chromadb/
+__pycache__/
