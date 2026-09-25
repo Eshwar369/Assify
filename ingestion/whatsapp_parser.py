@@ -1,5 +1,6 @@
+from sys import platform
 import __main__
-from normalizer import MessageObject
+from ingestion.normalizer import MessageObject , generate_msg_id
 import re
 from datetime import datetime
 
@@ -50,10 +51,15 @@ def parse_whatsapp_text(lines: list[str], contact_name:str,my_name:str):
                 sender="me" if sender==my_name else "them"
             else:
                 sender="them" if contact_name=="*" else contact_name
+            
+            
+            msgId=generate_msg_id(contact_name,ts,sender, cmsg['content'])
+
             Msg_obj=MessageObject(
+                id=msgId,
                 contact_name=contact_name,
                 platform="whatsapp",
-                timestamp=ts,
+                time_stamp=ts,
                 sender=sender,
                 content=cmsg["content"],
             )
@@ -81,10 +87,11 @@ if __name__ == "__main__":
     
     print(f"Total messages successfully parsed: {len(messages)}")
     
-    print("\n--- First 3 messages ---")
+"""    print("\n--- First 3 messages ---")
     for m in messages[:3]:
-        print(f"[{m.timestamp}] {m.sender}: {m.content}")
+        print(f"[{m.time_stamp}] {m.sender}: {m.content}")
         
     print("\n--- Last 3 messages ---")
     for m in messages[-3:]:
-        print(f"[{m.timestamp}] {m.sender}: {m.content}")
+        print(f"[{m.times_tamp}] {m.sender}: {m.content}")
+"""
