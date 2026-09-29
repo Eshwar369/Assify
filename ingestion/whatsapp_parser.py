@@ -43,36 +43,34 @@ def parse_whatsapp_text(lines: list[str], contact_name:str,my_name:str):
     for cmsg in msg_list:
         if cmsg is None:
             continue
+        
+        clean_content = cmsg['content'].replace("\x00", "").strip()
+        if not clean_content:
+            continue
+
+        date_str = f"{cmsg['date_str']} {cmsg['time_str']}"
+        ts = datetime.strptime(date_str, "%d/%m/%Y %H:%M")
+        sender = cmsg["sender"]
+        if my_name:
+            sender = "me" if sender == my_name else "them"
         else:
-            date_str= f"{cmsg['date_str']} {cmsg['time_str']}"
-            ts = datetime.strptime(date_str, "%d/%m/%Y %H:%M")
-            sender=cmsg["sender"]
-            if(my_name):
-                sender="me" if sender==my_name else "them"
-            else:
-                sender="them" if contact_name=="*" else contact_name
-            
-            
-            msgId=generate_msg_id(contact_name,ts,sender, cmsg['content'])
+            sender = "them" if contact_name == "*" else contact_name
+        
+        msgId = generate_msg_id(contact_name, ts, sender, clean_content)
 
-            Msg_obj=MessageObject(
-                id=msgId,
-                contact_name=contact_name,
-                platform="whatsapp",
-                time_stamp=ts,
-                sender=sender,
-                content=cmsg["content"],
-            )
-            final_normalized.append(Msg_obj)
+        Msg_obj = MessageObject(
+            id=msgId,
+            contact_name=contact_name,
+            platform="whatsapp",
+            time_stamp=ts,
+            sender=sender,
+            content=clean_content,
+        )
+        final_normalized.append(Msg_obj)
     return final_normalized
-    
-results = parse_whatsapp_text(test_lines,   
-contact_name="Sleepless Zombiee", my_name="*")
-for m in results:
-    print(m)
 
-    
-def parse_whatsapp_file(file_path: str, contact_name: str, my_name:  str) -> list[MessageObject]:
+
+def parse_whatsapp_file(file_path: str, contact_name: str, my_name: str) -> list[MessageObject]:
     with open(file_path, "r", encoding="utf-8") as f:
         lines = f.readlines()
     return parse_whatsapp_text(lines, contact_name, my_name)
