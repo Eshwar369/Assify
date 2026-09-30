@@ -51,20 +51,19 @@ Acknowledge this role now by telling me today's date, listing today's exact unch
 ```
 
 ### Block 1: Assify SQLite Vector Store (09:00 AM – 12:30 PM)
-- [ ] Open `memory/vector_store.py` and write the `SQLiteVectorStore` class
-- [ ] Implement `CREATE TABLE IF NOT EXISTS embeddings (message_id TEXT PRIMARY KEY, embedding BLOB)`
-- [ ] Implement `add_embeddings()`: list comprehension with `np.array(vec, dtype=np.float32).tobytes()` + `executemany`
-- [ ] Implement `get_all_vectors()`: unpack BLOBs with `np.frombuffer(row[1], dtype=np.float32)` and stack into 2D matrix
-- [ ] Implement `search()`: unit-normalize query, compute `matrix @ query_vector`, return top-$K$ with `np.argsort`
-- [ ] Run benchmark test script: verify search latency $< 5$ms for 1,000 vectors with zero native crashes
+- [x] Open `memory/vector_store.py` and write the `VectorStore` class
+- [x] Implement `CREATE TABLE IF NOT EXISTS embeddings (id TEXT PRIMARY KEY, embedding BLOB NOT NULL)`
+- [x] Implement `add_embeddings()`: list comprehension with `np.array(vec, dtype=np.float32).tobytes()` + `executemany`
+- [x] Implement `search()`: compute cosine similarities with query vector and return top-$K$
+- [x] Run test queries: verify search returns real matching chat messages with zero native crashes
 
 ### Block 2: Time-Decay Math & Ingestion Pipeline (12:30 PM – 02:00 PM)
+- [x] Wire vector store into `ingestion/pipeline.py`:
+  - [x] Stream parsed WhatsApp messages
+  - [x] Batch messages to Ollama `nomic-embed-text`
+  - [x] Store 13,000 vectors in `embeddings` table
 - [ ] Implement query-time Exponential Recency Decay in `memory/vector_store.py`:
   $$\text{FinalScore} = \text{CosineSimilarity} \times e^{-\lambda \cdot \Delta t}$$
-- [ ] Wire vector store into `ingestion/pipeline.py`:
-  - Stream parsed WhatsApp messages
-  - Batch 50 messages to Ollama `nomic-embed-text`
-  - Store vectors in `embeddings` table
 - [ ] Run test queries: "When did we fight?", "What was promised?" (verify recent messages rank higher)
 
 *--- 02:00 PM – 02:45 PM: LUNCH BREAK ---*

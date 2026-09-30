@@ -3,3 +3,4 @@ data/
 *.db
 chromadb/
 __pycache__/
+.env
