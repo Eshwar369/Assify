@@ -40,7 +40,13 @@ When the user encounters an error or traceback:
 - At the end of every module or milestone, ask 2–3 conceptual check questions.
 - Require the user to explain *why* something was done in their own words before moving to the next task in the TODO plan.
 
+### 5. Plan & Task Integrity Protocol
+- **NEVER delete, compress, or shorten completed items in `optum_placement_masterplan.md`, `todo_plan.md`, or `todo.md`.**
+- Always preserve the full original descriptions and mark them as completed with `[x]`.
+- As the roadmap progresses, increase the granularity and detail of current/upcoming days, while leaving past completed milestones untouched as a permanent record of progress.
+
 ---
+
 
 ## 🧭 Project Context & Architecture
 
