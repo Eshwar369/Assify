@@ -1,21 +1,21 @@
 from ingestion.whatsapp_parser import parse_whatsapp_file
-from storage.sqlsaving import connect_database,save_to_sql
-from memory.chroma_test import connect_vec_database
+from storage.sqlsaving import connect_database, save_to_sql
 from memory.vector_store import VectorStore
+from config import DATA_PATH, DB_PATH, VEC_DB_PATH, CONTACT, USER, BATCH_SIZE
 
 '''
 first pull the already written fuction from storage.sqlsaving
 get the documetns from normalizer,that is whatsapp parser,
 insert them into the sql and batch them and 
-insert them into chromadb
+insert them into vector_db
 '''
 
-def pipline(location:str):
-    msgs=parse_whatsapp_file(location,"Sleepless Zombiee","*")
-    conn,c=connect_database("data/db/allmessages.db")
-    save_to_sql(msgs,conn,c)
-    vec_db=VectorStore("data/vec_db/vector_db.db")
-    BATCH_SIZE = 200
+def pipline(location: str = DATA_PATH):
+    msgs = parse_whatsapp_file(location, CONTACT, USER)
+    conn, c = connect_database(DB_PATH)
+    save_to_sql(msgs, conn, c)
+    vec_db = VectorStore(VEC_DB_PATH)
+
     batch_docs = []
     batch_ids = []
     batch_metadatas = []
@@ -65,5 +65,5 @@ def pipline(location:str):
 
 
 if __name__ == "__main__":
-    pipline("data/assify_data.txt")
+    pipline(DATA_PATH)
 
