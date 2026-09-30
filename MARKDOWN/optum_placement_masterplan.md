@@ -61,10 +61,11 @@ Acknowledge this role now by telling me today's date, listing today's exact unch
 - [x] Wire vector store into `ingestion/pipeline.py`:
   - [x] Stream parsed WhatsApp messages
   - [x] Batch messages to Ollama `nomic-embed-text`
-  - [x] Store 13,000 vectors in `embeddings` table
-- [ ] Implement query-time Exponential Recency Decay in `memory/vector_store.py`:
+  - [x] Store 13,000+ vectors in unified `embeddings` table
+- [x] Implement query-time Exponential Recency Decay in `memory/vector_store.py`:
   $$\text{FinalScore} = \text{CosineSimilarity} \times e^{-\lambda \cdot \Delta t}$$
-- [ ] Run test queries: "When did we fight?", "What was promised?" (verify recent messages rank higher)
+- [x] Run test queries: verify recent messages get higher recency multipliers ($e^{-\lambda \Delta t}$) and rank higher
+
 
 *--- 02:00 PM – 02:45 PM: LUNCH BREAK ---*
 
