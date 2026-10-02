@@ -1,4 +1,6 @@
+from httpcore import __name
 import sqlite3 
+from config import DB_PATH
 
 def connect_database(location:str):
     conn= sqlite3.connect(location)

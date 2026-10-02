@@ -87,7 +87,23 @@ class VectorStore:
 
         scored.sort(key=lambda x: x["final_score"], reverse=True)
         return scored[:k]
-
+    def context_window_messages(self,message_id:str,window:int=5):
+    #once we find the id of the highest similarity or use case we
+    #call this fuction to get the full context window of messages
+        side=window//2
+        self.cursor.execute("SELECT rowid FROM messages WHERE id = ?", (message_id,))
+        row_id = self.cursor.fetchone()
+        if not row_id:
+            return []
+        row_id=row_id[0]
+        self.cursor.execute("""
+            SELECT id,time_stamp,sender,content
+            FROM messages
+            WHERE rowid BETWEEN ? AND ?
+            ORDER BY time_stamp ASC
+        """,(row_id-side,row_id+side))
+        rows=self.cursor.fetchall()
+        return rows
     def close(self):
         self.conn.close()
 

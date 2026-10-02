@@ -2,6 +2,7 @@ from sys import platform
 import __main__
 from ingestion.normalizer import MessageObject , generate_msg_id
 import re
+from config import CONTACT,USER,DATA_PATH
 from datetime import datetime
 
 
@@ -17,7 +18,7 @@ test_lines = [
 ]
 
 
-def parse_whatsapp_text(lines: list[str], contact_name:str,my_name:str):
+def parse_whatsapp_text(lines: list[str], contact_name:str=CONTACT,my_name:str=USER):
     msg_list=[]
     current_msg=None
     for line in lines:
@@ -70,20 +71,21 @@ def parse_whatsapp_text(lines: list[str], contact_name:str,my_name:str):
     return final_normalized
 
 
-def parse_whatsapp_file(file_path: str, contact_name: str, my_name: str) -> list[MessageObject]:
+def parse_whatsapp_file(file_path: str=DATA_PATH, contact_name: str =CONTACT, my_name: str =USER) -> list[MessageObject]:
     with open(file_path, "r", encoding="utf-8") as f:
         lines = f.readlines()
     return parse_whatsapp_text(lines, contact_name, my_name)
 
 
 if __name__ == "__main__":
-    file_path= "data/assify_data.txt"
+    pass
+'''    file_path= "data/assify_data.txt"
     contact_name ="Sleepless Zombiee"
     my_name = "*"
     print("Parsing WhatsApp export...")
     messages = parse_whatsapp_file(file_path, contact_name,my_name)
     
-    print(f"Total messages successfully parsed: {len(messages)}")
+    print(f"Total messages successfully parsed: {len(messages)}")'''
     
 """    print("\n--- First 3 messages ---")
     for m in messages[:3]:

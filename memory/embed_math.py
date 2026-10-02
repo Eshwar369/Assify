@@ -12,6 +12,7 @@ def cosine_sim(v1,v2) -> float:
     return dot/(norm1*norm2)
 
 def get_real_embeddings(sentence):
+    
     #gets the embedding of the words using ollama nomic-embed-text:v1.5
     return ollama.embeddings(model="nomic-embed-text:v1.5",prompt=sentence)
 
@@ -19,4 +20,4 @@ def cosine_sim_text(text1,text2):
     return cosine_sim(get_real_embeddings(text1).embedding,get_real_embeddings(text2).embedding)
 
 
-# print(cosine_sim_text("i am sorry","i love you , i was extremely wrong , i didn't mean that"))
+print(cosine_sim_text("i am happy","i am sad"))
