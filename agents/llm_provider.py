@@ -1,7 +1,10 @@
 import ollama
 from openai import OpenAI
+from config import LLM_PROVIDER
+import litellm
 
-import ollama
+
+
 class OllamaLLM():
     def __init__(self,model:str, format:str=""):
 
@@ -21,4 +24,12 @@ class OpenAILLM:
             messages=messages,   response_format={"type": "json_object"} if self.format=="json" else None)
         return response.choices[0].message.content
 
-        
+def get_llm(model:str= None,provider:str=LLM_PROVIDER,format:str=""):
+    provider= provider or LLM_PROVIDER
+    if provider=="ollama":
+        return OllamaLLM(model,format)
+    elif provider=="openai":
+        return OpenAILLM(model,format)
+    else:
+        # to integrate litellm
+        return None

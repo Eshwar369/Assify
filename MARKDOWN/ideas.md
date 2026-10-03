@@ -79,4 +79,44 @@
 - Everything runs 100% locally via SQLite + Ollama (zero cloud leaks).
 - Add a local AES-256 encrypted database option or quick session lock (PIN prompt on UI).
 
+---
+
+## 📜 Architectural Decision Record (ADR): The Evolution of Conversational Chunking
+
+### 🎯 The Core Problem:
+WhatsApp chat data does not look like clean textbook documents. Messages arrive as rapid-fire bursts, timestamps only have 1-minute granularity, and marathon sessions last for hours without pauses. Naive 1-by-1 message embedding failed because questions and short answers have asymmetric semantic syntax.
+
+---
+
+### 🪦 The Graveyard of Discarded Hypotheses ("Wasted Ideas" & Why They Failed)
+
+1. **Attempt A: Naive Fixed-Time Buckets (e.g. Every 5 Minutes)**
+   - *Hypothesis:* Group all messages sent within a rigid 5-minute clock window.
+   - *Why It Failed:* Dialogue involves two opposing actors. If Person A says *"I hate you"* and Person B says *"I am sorry"* 60 seconds later, the bucket merges them into one contradictory soup. The LLM loses speaker attribution and confuses who is apologizing.
+
+2. **Attempt B: Isolated Single-Sender Streams (Two Parallel Buckets)**
+   - *Hypothesis:* Put "My" messages in Bucket A and "Her" messages in Bucket B, sealing only when that specific sender pauses.
+   - *Why It Failed:* Human conversation moves in **Adjacency Pairs** (Question $\rightarrow$ Answer). Isolating senders completely severs the question from its answer. When searching for "When is the wedding?", the question was in Bucket A and the answer was in Bucket B, leaving both halves contextually orphaned.
+
+3. **Attempt C: Pure Semantic Distance Thresholding (Continuous Cosine Drop)**
+   - *Hypothesis:* Embed every message turn on-the-fly and detect topic shifts when cosine similarity drops below 0.5.
+   - *Why It Failed:* Prohibitive compute overhead. On consumer hardware, embedding 28,000 individual messages sequentially just to detect chunk seams would take hours during ingestion.
+
+4. **Attempt D: Hard Token Caps Without Overlap (The "505 vs 500" Orphan Problem)**
+   - *Hypothesis:* Cut chunks strictly at 500 words.
+   - *Why It Failed:* A 505-word emotional monologue gets split into a 500-word block and a useless, orphaned 5-word fragment with zero semantic context.
+
+---
+
+### 🏆 The Winning Production Architecture: "The Dialogue Episode" (Silence Gap + Rolling Horizon with Overlap)
+
+#### The Specification:
+1. **The Semantic Unit:** An interactive **Dialogue Episode** containing both speakers with explicit speaker prefixes: `[YOU]: ...` and `[THEM]: ...`.
+2. **Boundary Trigger 1 (Session Silence):** Any inactivity gap $\Delta t > 15 \text{ mins}$ triggers an immediate, clean session split.
+3. **Boundary Trigger 2 (Rolling Horizon for Marathon Chats):** For continuous 3–4 hour chats with zero silence, cap the active episode at **15 to 20 dialogue exchanges** (~250 words).
+4. **Sliding Window Overlap:** When a marathon chat hits the horizon cap, carry over the last **3–4 exchanges** into the beginning of the next chunk. Context across topic seams is never severed.
+5. **Hierarchical Parent-Child Storage:**
+   - Raw atomic messages stay untouched in SQLite `messages` (single source of truth).
+   - Aggregated episodes are stored in `message_bursts` with a serialized JSON list of child message IDs (`["msg_1", "msg_2", ...]`) for instant reverse-lookup.
+
 

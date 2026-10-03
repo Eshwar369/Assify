@@ -17,8 +17,10 @@ USER = os.getenv("USER") or os.getenv("DEFAULT_USER_NAME", "*")
 EMBED_MODEL = os.getenv("EMBED_MODEL") or os.getenv("OLLAMA_EMBED_MODEL", "nomic-embed-text:v1.5")
 FAST_LLM = os.getenv("FAST_LLM") or os.getenv("OLLAMA_FAST_LLM", "phi3:mini")
 ANALYST_LLM = os.getenv("ANALYST_LLM") or os.getenv("OLLAMA_ANALYSIS_LLM", "llama3:8b")
+PROVIDER_BASE_URL = os.getenv("PROVIDER_BASE_URL") or os.getenv("OLLAMA_BASE_URL", "http://localhost:11434")
 
 # Settings
 BATCH_SIZE = int(os.getenv("BATCH_SIZE") or os.getenv("EMBEDDING_BATCH_SIZE", 100))
 HALF_LIFE_DAYS = float(os.getenv("HALF_LIFE_DAYS") or os.getenv("TIME_DECAY_HALF_LIFE_DAYS", 30))
 LLM_PROVIDER = os.getenv("LLM_PROVIDER","ollama")
+MAX_HISTORY = int(os.getenv("MAX_HISTORY_TURNS") or os.getenv("MAX_HISTORY",10))

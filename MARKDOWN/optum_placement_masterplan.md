@@ -60,15 +60,23 @@
 
 #### Block 1.1: Fast Copilot Agent (`agents/Fast_agent.py`)
 > 📊 **Difficulty:** `🟡 Medium` | ⏱️ **Senior Dev Benchmark:** `45 – 60 mins` | 🎯 **Your Target Time:** `1h 45m – 2h 30m`
-- [ ] Connect `FastChatAgent.fast_reply()` with Small-to-Big Context Window retrieval:
-  - [ ] Accept user query string and optional contact filter
-  - [ ] Execute `self.vector_store.timed_search(query, top_k=3, half_life_days=30)`
-  - [ ] Expand each hit using `self.vector_store.context_window_messages(hit_id, window=3)`
-  - [ ] Construct grounding context block with chronological formatting (`[Timestamp] Sender: Content`)
-- [ ] Implement robust multi-turn conversational history management:
-  - [ ] System prompt: concise, empathetic, factually grounded, relationship copilot
-  - [ ] Rolling window pruning to prevent context overflow while preserving system instructions
-- [ ] Live verification: Interactive CLI loop in `agents/Fast_agent.py` answering relationship queries with sub-2s latency.
+- [x] Connect `FastChatAgent.fast_reply()` with Small-to-Big Context Window retrieval:
+  - [x] Accept user query string and optional contact filter
+  - [x] Execute `self.vector_store.timed_search(query, top_k=3, half_life_days=30)`
+  - [x] Expand each hit using `self.vector_store.context_window_messages(hit_id, window=3)`
+  - [x] Construct grounding context block with chronological formatting (`[Timestamp] Sender: Content`)
+- [x] Implement robust multi-turn conversational history management:
+  - [x] System prompt: concise, empathetic, factually grounded, relationship copilot
+  - [x] Rolling window pruning to prevent context overflow while preserving system instructions
+- [x] Live verification: Interactive CLI loop in `agents/Fast_agent.py` answering relationship queries with sub-2s latency.
+
+#### Block 1.1b: Conversational Burst Aggregator & Semantic Chunking (`ingestion/burst_aggregator.py`)
+> 📊 **Difficulty:** `🟡 Medium` | ⏱️ **Senior Dev Benchmark:** `45 – 60 mins` | 🎯 **Your Target Time:** `1h 30m – 2h 00m`
+- [ ] Implement Natural Dialogue Speaker-Turn Segmentation:
+  - [ ] Group consecutive rapid-fire fragments from the same sender into a single coherent thought
+  - [ ] Dynamic split conditions: Speaker transition OR conversation inactivity gap ($\Delta t > 10\text{ mins}$) OR token ceiling
+  - [ ] Maintain atomic messages in SQLite while indexing rich semantic burst passages into `embeddings`
+- [ ] Re-index vector store: compress 28,000+ noisy atomic vectors into ~5,000 dense semantic thought bursts.
 
 #### Block 1.2: Deep EQ Relationship Analyst (`agents/analyst_agent.py`)
 > 📊 **Difficulty:** `🟠 Medium-Hard` | ⏱️ **Senior Dev Benchmark:** `45 – 60 mins` | 🎯 **Your Target Time:** `2h 00m – 2h 45m`
