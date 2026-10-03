@@ -21,3 +21,4 @@ ANALYST_LLM = os.getenv("ANALYST_LLM") or os.getenv("OLLAMA_ANALYSIS_LLM", "llam
 # Settings
 BATCH_SIZE = int(os.getenv("BATCH_SIZE") or os.getenv("EMBEDDING_BATCH_SIZE", 100))
 HALF_LIFE_DAYS = float(os.getenv("HALF_LIFE_DAYS") or os.getenv("TIME_DECAY_HALF_LIFE_DAYS", 30))
+LLM_PROVIDER = os.getenv("LLM_PROVIDER","ollama")

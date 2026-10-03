@@ -2,11 +2,13 @@ from email import message
 import ollama
 from config import FAST_LLM, VEC_DB_PATH
 from memory.vector_store import VectorStore
+from agents.llm_provider import OllamaLLM
 
 
 class FastChatAgent:
     def __init__(self):
         self.ml_model = FAST_LLM
+        self.llm=OllamaLLM(model=self.ml_model)
         self.vector_store= VectorStore(path=VEC_DB_PATH)
         self.history=[
             {
@@ -21,18 +23,15 @@ class FastChatAgent:
             
         self.history.append({
             "role": "user",
-            "content": f"Query: {query}\n\nContext:\n{context_str}"
+            "content": f"Query: {query}\n\nContext:\n{context_messages}"
         })
-        reply = ollama.chat(
-            model=self.ml_model,
-            messages=self.history
-        )
+        reply = self.llm.chat(messages=self.history)
         self.history.append(
             {
                 "role":"assistant",
-                "content": reply['message']['content']
+                "content": reply
             }
         )
-        return reply['message']['content']
+        return reply
 
 

@@ -1,252 +1,227 @@
-# 🎯 Optum TDP 2027: 11-Day Placement Masterplan & Daily Execution Tracker
+# 🚀 Assify: The World-Class Builder Masterplan (0-to-Hosted Production Sprint)
 
-**Candidate:** Eshwar Adithya Gunturi (NIT Warangal, B.Tech ECE | IIT Madras, Dip. Data Science)  
-**Target Role:** Software Engineering Associate – TDP 2027 (Optum / UnitedHealth Group)  
-**Crucial Deadlines:**
+**Builder:** Eshwar Adithya Gunturi (NIT Warangal, B.Tech ECE | IIT Madras, Dip. Data Science)  
+**Target:** Architect, optimize, and deploy **Assify (Local Relationship Intelligence OS)** from zero to production-hosted live deployment.  
+**Core Mindset:** Forget campus screening filters and resume algorithms. Corporate screening filters on arbitrary cutoffs; the real world bows to builders who can architect, optimize, and ship production-grade intelligent systems from first principles.
+
+---
+
+## 🏛️ Completed Foundation Milestones (Preserved Progress)
+
 - [x] **PPT:** Sept 28, 2026 (Completed)
-- [ ] **Online Assessment (OA):** Oct 05, 2026 (6 days remaining)
-- [ ] **HR Interviews:** Oct 07–08, 2026
-- [ ] **Technical Interviews:** Oct 08–09, 2026 (9–10 days remaining)
-
----
-
-## ⚡ Gemini Spark Accountability Coach Prompt
-
-> **Instructions for Eshwar:** Copy and paste the prompt below into Gemini Spark (or Gemini on your phone/browser with Google Drive access enabled). It monitors this file on your synced Google Drive, tracks your checked/unchecked boxes, verifies code/concepts, and enforces strict time limits.
-
-```text
-You are my personal, unyielding Placement Drill Sergeant & Technical Mentor for my upcoming Optum Software Engineering Associate interviews (OA on Oct 5, Technical Interview on Oct 8-9).
-
-Access my synced Google Drive and locate the file named "optum_placement_masterplan.md" inside the Assify/MARKDOWN directory. Read the schedule and my current checked/unchecked boxes.
-
-Your operational rules:
-1. NO PASSIVE REMINDERS: Do not just say "Remember to study SQL". Reminders do not work on me.
-2. ACTIVE ACCOUNTABILITY & VERIFICATION: Every time I talk to you, ask me: "Which specific checkbox on today's schedule did you just finish? Paste your code or explain the concept to prove it."
-3. DRILL & GRILL: If I say I finished a topic (e.g., "SQL Window Functions" or "SQLite WAL mode"), do not congratulate me. Immediately fire 2 rapid-fire interview questions or edge-case test questions at me and evaluate my answers strictly.
-4. UNCOMPROMISING DISCIPLINE: Enforce my exact time-blocked schedule. If a block is overdue, call me out directly and give me a 30-minute countdown challenge to finish the deliverable.
-5. Socratic Teaching: If I am stuck or do not know a core CS topic (DBMS, OS, OOPs, Networks), break it down into first principles with an intuitive mental model, then force me to explain it back to you in my own words.
-
-Acknowledge this role now by telling me today's date, listing today's exact unchecked tasks from the file, and demanding my immediate status on the current time-block.
-```
-
----
-
-## 🔥 TUESDAY, SEPT 29: 17-HOUR MEGA LOCK-IN SPRINT (09:00 AM – 02:00 AM)
-
-*Zero compromises. All missed items from Sept 27–28 are consolidated here without dropping any scope.*
-
-```
-┌────────────────────────────────────────────────────────────────────────┐
-│               SEPT 29 TIME-BLOCKED POWER SCHEDULE                      │
-├──────────────────────┬─────────────────────────────────────────────────┤
-│ 09:00 AM – 12:30 PM  │ BLOCK 1: Assify SQLite Vector Store             │
-│ 12:30 PM – 02:00 PM  │ BLOCK 2: Time-Decay Math & Ingestion Pipeline   │
-│ 02:00 PM – 02:45 PM  │ LUNCH & HYDRATION BREAK                         │
-│ 02:45 PM – 05:30 PM  │ BLOCK 3: SQL Power Sprint (Joins, CTEs, GroupBy)│
-│ 05:30 PM – 08:00 PM  │ BLOCK 4: DSA Sprint (Arrays, 2-Pointers, Window)│
-│ 08:00 PM – 08:45 PM  │ DINNER BREAK                                    │
-│ 08:45 PM – 11:30 PM  │ BLOCK 5: Core CS (OOPs + DBMS + Resume Defense) │
-│ 11:30 PM – 02:00 AM  │ BLOCK 6: Assify Dual-Agent System (Phi-3/Llama) │
-└──────────────────────┴─────────────────────────────────────────────────┘
-```
-
-### Block 1: Assify SQLite Vector Store (09:00 AM – 12:30 PM)
 - [x] Open `memory/vector_store.py` and write the `VectorStore` class
 - [x] Implement `CREATE TABLE IF NOT EXISTS embeddings (id TEXT PRIMARY KEY, embedding BLOB NOT NULL)`
 - [x] Implement `add_embeddings()`: list comprehension with `np.array(vec, dtype=np.float32).tobytes()` + `executemany`
 - [x] Implement `search()`: compute cosine similarities with query vector and return top-$K$
 - [x] Run test queries: verify search returns real matching chat messages with zero native crashes
-
-### Block 2: Time-Decay Math & Ingestion Pipeline (12:30 PM – 02:00 PM)
 - [x] Wire vector store into `ingestion/pipeline.py`:
   - [x] Stream parsed WhatsApp messages
   - [x] Batch messages to Ollama `nomic-embed-text`
-  - [x] Store 13,000+ vectors in unified `embeddings` table
+  - [x] Store 13,000+ vectors in unified `embeddings` table (Expanded to 28,371 messages in `30-09-2027.db`)
 - [x] Implement query-time Exponential Recency Decay in `memory/vector_store.py`:
   $$\text{FinalScore} = \text{CosineSimilarity} \times e^{-\lambda \cdot \Delta t}$$
 - [x] Run test queries: verify recent messages get higher recency multipliers ($e^{-\lambda \Delta t}$) and rank higher
-
-
-*--- 02:00 PM – 02:45 PM: LUNCH BREAK ---*
-
-### Block 3: SQL Power Sprint (02:45 PM – 05:30 PM)
-*Goal: Solve 8 high-yield questions on LeetCode covering Joins, Group By, Subqueries & CTEs.*
-- [ ] **Joins & Basic Filtering:**
-  - [ ] LeetCode 175: *Combine Two Tables* (Master `LEFT JOIN` vs `INNER JOIN`)
-  - [ ] LeetCode 181: *Employees Earning More Than Their Managers* (Self-Join vs Subquery)
-  - [ ] LeetCode 182: *Duplicate Emails* (`GROUP BY email HAVING COUNT(*) > 1`)
-  - [ ] LeetCode 183: *Customers Who Never Order* (`LEFT JOIN ... WHERE order_id IS NULL`)
-  - [ ] LeetCode 595: *Big Countries*
-- [ ] **Subqueries & Date Functions:**
-  - [ ] LeetCode 176: *Second Highest Salary* (Handle `NULL` using `IFNULL` / `LIMIT 1 OFFSET 1`)
-  - [ ] LeetCode 184: *Department Highest Salary* (`IN` subquery with `MAX(salary)`)
-  - [ ] LeetCode 197: *Rising Temperature* (Self-join with `DATEDIFF(w1.recordDate, w2.recordDate) = 1`)
-
-### Block 4: DSA Sprint — Arrays, Two Pointers & Sliding Window (05:30 PM – 08:00 PM)
-*Goal: Solve 6 canonical interview patterns.*
-- [ ] **Arrays & Two Pointers:**
-  - [ ] LeetCode 1: *Two Sum* (One-pass HashMap, $O(N)$ time, $O(N)$ space)
-  - [ ] LeetCode 121: *Best Time to Buy and Sell Stock* (One-pass greedy minimum tracker)
-  - [ ] LeetCode 15: *3Sum* (Sort array + 2-pointer scan + skip duplicates)
-  - [ ] LeetCode 11: *Container With Most Water* (Two pointers from left & right, move smaller height)
-- [ ] **Sliding Window:**
-  - [ ] LeetCode 3: *Longest Substring Without Repeating Characters* (Map/Set + dynamic window `[left, right]`)
-  - [ ] LeetCode 1004: *Max Consecutive Ones III* (Window flipping at most $K$ zeros)
-
-*--- 08:00 PM – 08:45 PM: DINNER BREAK ---*
-
-### Block 5: Core CS Fundamentals & Resume Defense (08:45 PM – 11:30 PM)
-- [ ] **OOPs (Object-Oriented Programming):**
-  - [ ] Encapsulation (Data hiding, access modifiers `public`, `protected`, `private`)
-  - [ ] Abstraction (Abstract classes vs Interfaces, separating "what" from "how")
-  - [ ] Inheritance (Single, Multiple, Diamond problem, MRO in Python)
-  - [ ] Polymorphism (Compile-time function overloading vs Run-time method overriding)
-- [ ] **DBMS (Database Management Systems):**
-  - [ ] ACID Properties (Atomicity, Consistency, Isolation, Durability with banking example)
-  - [ ] Keys (Primary Key, Foreign Key, Candidate Key, Composite Key)
-  - [ ] Indexing: B-Tree vs Hash Index; Clustered vs Non-Clustered; Explain our `idx_msg_contact_time`
-- [ ] **Resume Defense Drill 1 (NGDT & BDL):**
-  - [ ] Practice explaining NGDT: Web-based LIMS, MariaDB schema, Redis slot caching, Docker, RBAC
-  - [ ] Practice explaining BDL: TMS570LC43x (lockstep Cortex-R4F), SCI vs CAN bus, UART bootloader
-
-### Block 6: Assify Dual-Agent System with Ollama (11:30 PM – 02:00 AM)
-- [ ] Create `agents/dual_agent.py`
-- [ ] Implement Agent 1 (Fast Responder): Prompt `phi3:mini` to give quick factual replies using retrieved chat context ($< 2$s latency)
-- [ ] Implement Agent 2 (Relationship Analyst): Prompt `llama3:8b` to evaluate emotional dynamics, tone, and unresolved conflicts
-- [ ] Test the dual-agent script with a sample relationship query ("Why were we upset last Friday?")
+- [x] Implement Small-to-Big Retrieval: `context_window_messages(message_id, window=5)` using SQLite sequential `rowid`
+- [x] Solved Core SQL & Data Manipulation Foundations:
+  - [x] LeetCode 181: *Employees Earning More Than Their Managers* (Self-Join vs Subquery)
+  - [x] LeetCode 183: *Customers Who Never Order* (`LEFT JOIN ... WHERE order_id IS NULL`)
+  - [x] LeetCode 176: *Second Highest Salary* (Handle `NULL` using `IFNULL` / `LIMIT 1 OFFSET 1`)
 
 ---
 
-## 📅 WEDNESDAY, SEPT 30: WINDOW FUNCTIONS & LINKED LISTS
+## ⚡ The World-Class 7-Day Velocity Sprint (Oct 03 – Oct 09, 2026)
 
-### Track 1: Assify (Morning)
-- [ ] Build end-to-end CLI orchestrator (`main.py`): Query $\to$ Hybrid Retrieve (Time-decay vector + SQL) $\to$ Dual-Agent output
-- [ ] Test edge cases (no matches, single message, future date queries)
-
-### Track 2: SQL & DSA Sprint (Afternoon)
-- [ ] **SQL Drill (Window Functions I - Ranking):**
-  - [ ] Understand `ROW_NUMBER()` vs `RANK()` vs `DENSE_RANK()`
-  - [ ] LeetCode 178: *Rank Scores*
-  - [ ] LeetCode 185: *Department Top Three Salaries* (Classic hard OA question)
-  - [ ] LeetCode 511: *Game Play Analysis I*
-- [ ] **DSA Drill (Linked Lists):**
-  - [ ] LeetCode 206: *Reverse Linked List*
-  - [ ] LeetCode 21: *Merge Two Sorted Lists*
-  - [ ] LeetCode 141: *Linked List Cycle* (Floyd’s Cycle Detection)
-
-### Track 3: Core CS & Resume (Evening)
-- [ ] **Operating Systems (Processes & Threads):**
-  - [ ] Process vs Thread (Memory space, stack vs heap, context switch cost)
-  - [ ] Deadlocks: 4 Coffman conditions, Prevention vs Avoidance (Banker's Algorithm)
-- [ ] **Resume Defense:** Air Mouse (ESP32, MPU-6050, I2C protocol, noise-filtering thresholds)
+```
+┌──────────────────────────────────────────────────────────────────────────────────┐
+│                   7-DAY SPRINT TO LIVE PRODUCTION HOSTING                        │
+├─────────┬──────────────┬─────────────────────────────────────────────────────────┤
+│ DAY 1   │ Sat, Oct 03  │ Dual-Agent Engine (Fast Copilot + Deep EQ Analyst)      │
+│ DAY 2   │ Sun, Oct 04  │ Memory Intelligence & Knowledge Graph (Promises, Gifts) │
+│ DAY 3   │ Mon, Oct 05  │ Multi-Modal Audio Pipeline (faster-whisper local ASR)   │
+│ DAY 4   │ Tue, Oct 06  │ Production Backend (FastAPI Async, Streaming SSE, WAL)  │
+│ DAY 5   │ Wed, Oct 07  │ Modern Premium UI (Streamlit / Dark Mode Web App)       │
+│ DAY 6   │ Thu, Oct 08  │ Profiling, Latency Benchmarks (<2s E2E) & Stress Tests  │
+│ DAY 7   │ Fri, Oct 09  │ Docker Containerization & Live Cloud Hosting Deployment │
+└─────────┴──────────────┴─────────────────────────────────────────────────────────┘
+```
 
 ---
 
-## 📅 THURSDAY, OCT 01: AUDIO INGESTION & WINDOW FUNCTIONS II
+### 📅 DAY 1: SATURDAY, OCT 03 — DUAL-AGENT INTELLIGENCE ENGINE
 
-### Track 1: Assify (Morning)
-- [ ] Configure `faster-whisper` (`ingestion/audio_parser.py`) for WhatsApp voice notes
-- [ ] Transcribe sample audio and pipe into `MessageObject` schema
+*Goal: Transform Assify from a raw retrieval engine into an interactive, multi-tier reasoning system with sub-second copilot responses and structured emotional analytics.*
 
-### Track 2: SQL & DSA Sprint (Afternoon)
-- [ ] **SQL Drill (Window Functions II - Value Functions):**
-  - [ ] `LEAD()` and `LAG()`
-  - [ ] Running totals with `SUM(...) OVER (PARTITION BY ... ORDER BY ...)`
-  - [ ] LeetCode 180: *Consecutive Numbers*
-  - [ ] LeetCode 626: *Exchange Seats*
-  - [ ] LeetCode 1204: *Last Person to Fit in the Bus*
-- [ ] **DSA Drill (Stacks):**
-  - [ ] LeetCode 20: *Valid Parentheses*
-  - [ ] LeetCode 155: *Min Stack*
-  - [ ] LeetCode 739: *Daily Temperatures* (Monotonic Stack)
+#### Block 1.0: Pluggable LLM Provider Adapter (`agents/llm_provider.py`)
+> 📊 **Difficulty:** `🟡 Medium-Easy` | ⏱️ **Senior Dev Benchmark:** `30 – 45 mins` | 🎯 **Your Target Time:** `1h 15m – 1h 45m`
+- [ ] Implement Unified LLM Interface (Strategy Pattern / Adapter):
+  - [ ] Support `LLM_PROVIDER="ollama"` (100% private local) and `LLM_PROVIDER="cloud"` (Groq/OpenAI/Gemini for ultra-low latency)
+  - [ ] Standardized contract: `chat_completion(messages: list[dict], model: str, json_mode: bool = False) -> str`
+  - [ ] Configuration toggle in `config.py`: swap between **Local Privacy Mode** and **Turbo Cloud Mode** via single env flag with zero agent code changes.
 
-### Track 3: Core CS & Resume (Evening)
-- [ ] **Operating Systems (Memory Management):**
-  - [ ] Virtual Memory, Paging, Page Tables, Page Faults, Thrashing
-  - [ ] Page Replacement Algorithms (LRU, FIFO, Optimal)
+#### Block 1.1: Fast Copilot Agent (`agents/Fast_agent.py`)
+> 📊 **Difficulty:** `🟡 Medium` | ⏱️ **Senior Dev Benchmark:** `45 – 60 mins` | 🎯 **Your Target Time:** `1h 45m – 2h 30m`
+- [ ] Connect `FastChatAgent.fast_reply()` with Small-to-Big Context Window retrieval:
+  - [ ] Accept user query string and optional contact filter
+  - [ ] Execute `self.vector_store.timed_search(query, top_k=3, half_life_days=30)`
+  - [ ] Expand each hit using `self.vector_store.context_window_messages(hit_id, window=3)`
+  - [ ] Construct grounding context block with chronological formatting (`[Timestamp] Sender: Content`)
+- [ ] Implement robust multi-turn conversational history management:
+  - [ ] System prompt: concise, empathetic, factually grounded, relationship copilot
+  - [ ] Rolling window pruning to prevent context overflow while preserving system instructions
+- [ ] Live verification: Interactive CLI loop in `agents/Fast_agent.py` answering relationship queries with sub-2s latency.
 
----
-
-## 📅 FRIDAY, OCT 02: STREAMLIT UI & NETWORKS
-
-### Track 1: Assify (Morning)
-- [ ] Build single-page Streamlit UI (`app.py`):
-  - Relationship dropdown
-  - Query box with real-time Phi-3 response
-  - LLaMA-3 sentiment health card
-  - Chat history timeline with retrieved sources
-
-### Track 2: SQL & DSA Sprint (Afternoon)
-- [ ] **SQL Drill (Self-Joins & Advanced Scenarios):**
-  - [ ] LeetCode 550: *Game Play Analysis IV*
-  - [ ] LeetCode 1341: *Movie Rating*
-  - [ ] LeetCode 1907: *Count Salary Categories*
-- [ ] **DSA Drill (Binary Search):**
-  - [ ] LeetCode 704: *Binary Search* (Template: `left <= right`)
-  - [ ] LeetCode 33: *Search in Rotated Sorted Array*
-  - [ ] LeetCode 153: *Find Minimum in Rotated Sorted Array*
-
-### Track 3: Core CS & Resume (Evening)
-- [ ] **Computer Networks:**
-  - [ ] OSI 7 Layers vs TCP/IP
-  - [ ] TCP vs UDP (Reliability, Handshake, Use Cases)
-  - [ ] TCP 3-Way Handshake (`SYN` $\to$ `SYN-ACK` $\to$ `ACK`)
-  - [ ] Life of a packet: "What happens when you type `https://google.com`?"
+#### Block 1.2: Deep EQ Relationship Analyst (`agents/analyst_agent.py`)
+> 📊 **Difficulty:** `🟠 Medium-Hard` | ⏱️ **Senior Dev Benchmark:** `45 – 60 mins` | 🎯 **Your Target Time:** `2h 00m – 2h 45m`
+- [ ] Design specification for the Relationship Analyst agent using `translategemma:4b` (or `llama3:8b`):
+  - [ ] Strict JSON output schema: `{"sentiment_score": float (-1.0 to 1.0), "emotional_tone": str, "conflict_risk": str ("low"|"medium"|"high"), "core_theme": str, "actionable_advice": str}`
+  - [ ] Prompt engineering for unbiased, deep relational psychology analysis
+- [ ] Implement `AnalystAgent.analyze_thread()`:
+  - [ ] Input: Full context window of a conflict or significant event
+  - [ ] Output: Validated Pydantic schema / parsed JSON object with fallback parsing
+- [ ] Live verification: Test on historical arguments and verify sentiment scoring accuracy.
 
 ---
 
-## 📅 SATURDAY, OCT 03: BENCHMARKS & TREES
+### 📅 DAY 2: SUNDAY, OCT 04 — MEMORY INTELLIGENCE & KNOWLEDGE GRAPH
 
-### Track 1: Assify (Morning)
-- [ ] Run benchmark scripts: measure parser speed, SQLite WAL read/write speed, vector search latency ($< 5$ms)
-- [ ] Update `README.md` with system architecture diagrams and benchmarks
+*Goal: Extract high-value relationship entities (promises, unfulfilled commitments, gift ideas, milestones) into dedicated queryable SQLite tables.*
 
-### Track 2: SQL & DSA Sprint (Afternoon)
-- [ ] **SQL Marathon:** Timed 5-question mock test under 45 minutes
-- [ ] **DSA Drill (Binary Trees & BFS/DFS):**
-  - [ ] LeetCode 104: *Maximum Depth of Binary Tree*
-  - [ ] LeetCode 226: *Invert Binary Tree*
-  - [ ] LeetCode 102: *Binary Tree Level Order Traversal* (BFS with queue)
-  - [ ] LeetCode 236: *Lowest Common Ancestor of a Binary Tree*
+#### Block 2.1: Entity Schema & Extraction Pipeline (`memory/entity_extractor.py`)
+> 📊 **Difficulty:** `🟠 Medium-Hard` | ⏱️ **Senior Dev Benchmark:** `1h 15m – 1h 30m` | 🎯 **Your Target Time:** `2h 30m – 3h 15m`
+- [ ] Create SQLite schema for relationship intelligence:
+  - `CREATE TABLE IF NOT EXISTS commitments (id TEXT PRIMARY KEY, contact TEXT, promise_by TEXT, commitment TEXT, timestamp TEXT, status TEXT)`
+  - `CREATE TABLE IF NOT EXISTS gift_ideas (id TEXT PRIMARY KEY, contact TEXT, item TEXT, context TEXT, timestamp TEXT)`
+  - `CREATE TABLE IF NOT EXISTS sentiment_timeline (id TEXT PRIMARY KEY, contact TEXT, date TEXT, average_score REAL, key_conflict TEXT)`
+- [ ] Implement zero-shot entity extraction via LLM with structured output:
+  - [ ] Batch scan important chat threads
+  - [ ] Extract commitments: "I'll call you tomorrow", "Let's plan Goa next month", "I'll send the notes"
+  - [ ] Extract preferences & wishlists: "I love this book", "Need a new mechanical keyboard"
+- [ ] Wire extracted entities into SQLite database with indexed lookups.
 
-### Track 3: Core CS & Resume (Evening)
-- [ ] **System Design Fundamentals:**
-  - [ ] Client-Server, RESTful APIs, Caching (Redis Cache-Aside)
-  - [ ] SQL vs NoSQL trade-offs
-
----
-
-## 📅 SUNDAY, OCT 04: [DAY BEFORE OA] FULL MOCK SIMULATION
-
-- [ ] **Morning (10:00 AM – 11:30 AM): Full Mock OA 1**
-  - 2 DSA Coding Problems + 2 SQL Queries
-- [ ] **Afternoon (02:30 PM – 04:00 PM): Full Mock OA 2**
-  - 2 DSA Coding Problems + 2 SQL Queries
-- [ ] **Evening (05:00 PM – 07:30 PM): Review & Formula Cheat Sheet**
-  - [ ] Review mistakes, edge cases (empty inputs, negative numbers, null values)
-  - [ ] Review SQL Window functions and Date syntax
-- [ ] **Night (10:00 PM): Lights out & sleep.** No late-night cramming.
+#### Block 2.2: Memory Query Interface (`memory/relationship_graph.py`)
+> 📊 **Difficulty:** `🟡 Medium-Easy` | ⏱️ **Senior Dev Benchmark:** `30 – 45 mins` | 🎯 **Your Target Time:** `1h 15m – 1h 45m`
+- [ ] Build fast query functions:
+  - `get_open_commitments(contact: str) -> list[dict]`
+  - `get_gift_ideas(contact: str) -> list[dict]`
+  - `get_sentiment_trend(contact: str, days: int) -> list[dict]`
+- [ ] Test verification: Run query "What did I promise to do last month?" and get instant SQL-backed results.
 
 ---
 
-## 📅 MONDAY, OCT 05: [ONLINE ASSESSMENT DAY]
+### 📅 DAY 3: MONDAY, OCT 05 — MULTI-MODAL AUDIO INGESTION PIPELINE
 
-- [ ] **Morning:** Warm-up with 1 easy array question and 1 simple SQL join
-- [ ] **Pre-Test Check:** Stable internet, quiet room, clean desk, valid ID ready
-- [ ] **OA Window:** **Crush the Optum Online Assessment**
-- [ ] **Post-OA:** Note down questions and tricky topics for interview prep
+*Goal: Unlock voice notes — the most emotional and high-context medium in modern messaging — with local, zero-leak speech-to-text.*
+
+#### Block 3.1: Local Whisper Integration (`ingestion/audio_parser.py`)
+> 📊 **Difficulty:** `🟡 Medium` | ⏱️ **Senior Dev Benchmark:** `45 – 60 mins` | 🎯 **Your Target Time:** `1h 45m – 2h 15m`
+- [ ] Set up `faster-whisper` (CTranslate2 backend) for ultra-fast local inference on CPU/GPU
+- [ ] Implement audio format normalization:
+  - [ ] Convert WhatsApp `.opus` / `.ogg` / `.m4a` to standard 16kHz WAV using `ffmpeg` or `pydub`
+  - [ ] Implement voice activity detection (VAD) filter to strip long silences
+- [ ] Transcribe audio with timestamp alignment and speaker metadata
+
+#### Block 3.2: Multi-Modal Ingestion Integration
+> 📊 **Difficulty:** `🟡 Medium` | ⏱️ **Senior Dev Benchmark:** `45 mins` | 🎯 **Your Target Time:** `1h 30m – 2h 00m`
+- [ ] Bridge transcribed voice notes into `MessageObject` schema:
+  - [ ] Mark `message_type = 'audio'` with transcription text in `content`
+  - [ ] Generate 768-D embeddings via Ollama `nomic-embed-text`
+  - [ ] Insert into unified SQLite database (`messages` + `embeddings`)
+- [ ] Test verification: Query a spoken inside joke or audio note and verify successful retrieval.
 
 ---
 
-## 📅 TUESDAY – FRIDAY, OCT 06 – 09: [INTERVIEW DRILL & EXECUTION]
+### 📅 DAY 4: TUESDAY, OCT 06 — PRODUCTION BACKEND ARCHITECTURE
 
-### Day 9 (Oct 06): Assify & Resume Deep-Dive
-- [ ] Mock interview: Defend Assify architecture end-to-end without notes
-- [ ] Mock interview: Defend NGDT LIMS & BDL microcontrollers
+*Goal: Build a high-throughput, async, production-grade REST & SSE backend using FastAPI.*
 
-### Day 10 (Oct 07): Core CS Rapid Fire & HR Prep
-- [ ] 50-question rapid fire (OOPs, DBMS, OS, Networks)
-- [ ] STAR method HR responses ("Tell me about yourself", "Why Optum?", "Overcoming failure")
+#### Block 4.1: FastAPI Core & Concurrency Architecture (`server/main.py`)
+> 📊 **Difficulty:** `🟠 Medium-Hard` | ⏱️ **Senior Dev Benchmark:** `1h 00m – 1h 30m` | 🎯 **Your Target Time:** `2h 30m – 3h 30m`
+- [ ] Initialize FastAPI application with CORS middleware, lifespan events, and dependency injection
+- [ ] Implement SQLite WAL-mode connection pooling:
+  - [ ] Read-only connections for fast concurrent retrieval
+  - [ ] Dedicated write lock handling for ingestions
+- [ ] Define API Endpoints:
+  - `POST /api/chat/fast`: Streaming Server-Sent Events (SSE) token generation
+  - `POST /api/chat/analyze`: Deep EQ analysis payload
+  - `GET /api/commitments`: Query pending promises
+  - `GET /api/timeline`: Query emotional trajectory over time
+  - `POST /api/ingest/upload`: Upload new chat export or audio files
 
-### Days 11 & 12 (Oct 08–09): Technical & HR Interviews
-- [ ] [ ] **Walk into the Optum interviews with total technical command and secure the offer!**
+#### Block 4.2: Streaming & Health Diagnostics
+> 📊 **Difficulty:** `🟡 Medium` | ⏱️ **Senior Dev Benchmark:** `45 – 60 mins` | 🎯 **Your Target Time:** `1h 45m – 2h 30m`
+- [ ] Implement token-by-token streaming response generator using Ollama's streaming API
+- [ ] Implement health check `/health` with model readiness and DB integrity checks
+- [ ] Automated integration test suite (`tests/test_api.py`) verifying 200 OK across all endpoints.
+
+---
+
+### 📅 DAY 5: WEDNESDAY, OCT 07 — MODERN PREMIUM UI
+
+*Goal: Craft a stunning, responsive, dark-mode user interface with fluid interactions and rich data visualizations.*
+
+#### Block 5.1: Real-time Relationship OS Dashboard
+> 📊 **Difficulty:** `🟠 Medium-Hard` | ⏱️ **Senior Dev Benchmark:** `1h 30m – 2h 00m` | 🎯 **Your Target Time:** `3h 00m – 4h 00m`
+- [ ] Build premium UI (Streamlit or Vite/React + Tailwind):
+  - [ ] **Chat Terminal**: Real-time token streaming with source grounding citations (shows exact message context retrieved)
+  - [ ] **Relationship Radar**: Emotional sentiment score gauge (-1.0 to +1.0) with status indicators
+  - [ ] **Commitments Tracker**: Interactive checklist of promises made / pending
+  - [ ] **Gift & Interest Vault**: Tagged list of preferences detected across conversations
+  - [ ] **Interactive Timeline**: Visual timeline of chat history with sentiment peaks and valleys
+
+#### Block 5.2: Aesthetic & Interaction Polish
+> 📊 **Difficulty:** `🟡 Medium` | ⏱️ **Senior Dev Benchmark:** `45 – 60 mins` | 🎯 **Your Target Time:** `1h 30m – 2h 15m`
+- [ ] Design styling: Deep obsidian dark mode, glassmorphism cards, glowing status badges, curated typography
+- [ ] Zero layout shifts, smooth animations, and mobile-responsive viewport.
+
+---
+
+### 📅 DAY 6: THURSDAY, OCT 08 — PROFILING, LATENCY BENCHMARKS & HARDENING
+
+*Goal: Profile every layer of the architecture, drive end-to-end latency below 2 seconds, and harden against edge cases.*
+
+#### Block 6.1: Benchmarking Suite (`benchmarks/latency_audit.py`)
+> 📊 **Difficulty:** `🟡 Medium` | ⏱️ **Senior Dev Benchmark:** `45 – 60 mins` | 🎯 **Your Target Time:** `1h 30m – 2h 15m`
+- [ ] Write automated latency benchmarks measuring:
+  - [ ] Vector similarity calculation latency over 28,000+ items (< 5ms target)
+  - [ ] Context window SQLite sequential lookup latency (< 1ms target)
+  - [ ] Time-to-first-token (TTFT) for Fast Copilot (< 800ms target)
+  - [ ] Full deep analysis latency (< 3.5s target)
+- [ ] Document benchmarks with percentiles (p50, p95, p99) and memory footprint.
+
+#### Block 6.2: System Hardening & Edge Cases
+> 📊 **Difficulty:** `🟡 Medium-Easy` | ⏱️ **Senior Dev Benchmark:** `45 mins` | 🎯 **Your Target Time:** `1h 30m – 2h 00m`
+- [ ] Handle empty search queries, foreign characters, emojis, and massive prompt injections
+- [ ] Implement cache layer (LRU cache for frequent embedding queries)
+- [ ] Full codebase linting and type annotations (`mypy` / `ruff`).
+
+---
+
+### 📅 DAY 7: FRIDAY, OCT 09 — DOCKERIZATION & LIVE PRODUCTION HOSTING
+
+*Goal: Package Assify into a zero-dependency container and deploy to a live public host.*
+
+#### Block 7.1: Production Dockerfile & Compose (`Dockerfile`, `docker-compose.yml`)
+> 📊 **Difficulty:** `🟠 Medium-Hard` | ⏱️ **Senior Dev Benchmark:** `45 – 60 mins` | 🎯 **Your Target Time:** `1h 45m – 2h 30m`
+- [ ] Write optimized multi-stage `Dockerfile`:
+  - Python 3.12 slim base
+  - Pre-install dependencies, ffmpeg, and SQLite3
+  - Non-root user security execution
+- [ ] Configure `docker-compose.yml` for unified orchestration:
+  - App service (FastAPI + UI)
+  - Ollama service with volume mount for model weights
+  - Shared volume for SQLite database storage
+
+#### Block 7.2: Live Cloud Deployment
+> 📊 **Difficulty:** `🟠 Medium-Hard` | ⏱️ **Senior Dev Benchmark:** `1h 00m – 1h 30m` | 🎯 **Your Target Time:** `2h 00m – 3h 00m`
+- [ ] Deploy to cloud platform (Hugging Face Spaces / Railway / Render / VPS)
+- [ ] Configure environment variables, volume persistence, and SSL certificates
+- [ ] Verify live public URL: Open browser, run live chat query, and verify instant streaming response.
+- [ ] Publish open-source GitHub repository with architecture diagram, live demo link, and comprehensive documentation.
+
+---
+
+## 🥋 The Master-Student Code of Conduct
+
+1. **First-Principles Only**: No blindly copy-pasting black-box libraries. Every data structure, math formula, and query must be understood down to the memory level.
+2. **Speed Through Focus**: High speed comes from eliminating distractions and writing clean, minimal, modular code—not from rushing sloppy hacks.
+3. **Shipped is Better Than Perfected**: We write code, test it, benchmark it, and commit it. At the end of 7 days, the world gets to see and interact with Assify.

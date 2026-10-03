@@ -10,14 +10,14 @@ The rule of engagement: **You write the code, I guide your thinking, challenge e
 Before jumping to LangChain or vector DBs, you need clean, structured data objects. If the parser is broken, downstream models produce garbage.
 
 ### Task 1.1: Inspect the Raw WhatsApp Data 🔍
-- [ ] Open `data/assify_data.txt`.
-- [ ] Inspect 20–30 lines and identify:
-  - [ ] Exact timestamp format (e.g. `[12/04/23, 18:30:15]` vs `12/04/23, 6:30 pm - `).
-  - [ ] Separator between timestamp and sender.
-  - [ ] Separator between sender and message text.
-  - [ ] What system messages look like (e.g. *"Messages and calls are end-to-end encrypted"*).
-  - [ ] What omitted media lines look like (e.g. `<Media omitted>` or `image omitted`).
-  - [ ] How multi-line messages behave (messages with Enter/newlines).
+- [x] Open `data/assify_data.txt`.
+- [x] Inspect 20–30 lines and identify:
+  - [x] Exact timestamp format (e.g. `[12/04/23, 18:30:15]` vs `12/04/23, 6:30 pm - `).
+  - [x] Separator between timestamp and sender.
+  - [x] Separator between sender and message text.
+  - [x] What system messages look like (e.g. *"Messages and calls are end-to-end encrypted"*).
+  - [x] What omitted media lines look like (e.g. `<Media omitted>` or `image omitted`).
+  - [x] How multi-line messages behave (messages with Enter/newlines).
 
 ---
 
