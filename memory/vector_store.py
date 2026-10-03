@@ -3,14 +3,14 @@ import numpy as np
 import ollama
 import math
 from datetime import datetime
+from storage.sqlsaving import connect_database
 from memory.embed_math import cosine_sim
 from config import VEC_DB_PATH, DB_PATH, EMBED_MODEL, HALF_LIFE_DAYS
 
 
 class VectorStore:
     def __init__(self, path: str = VEC_DB_PATH):
-        self.conn = sqlite3.connect(path)
-        self.cursor = self.conn.cursor()
+        self.conn,self.cursor = connect_database(path)
         self.cursor.execute("PRAGMA journal_mode=WAL;")
         self.create_table()
 

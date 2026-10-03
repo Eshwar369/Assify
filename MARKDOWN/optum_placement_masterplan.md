@@ -53,10 +53,10 @@
 
 #### Block 1.0: Pluggable LLM Provider Adapter (`agents/llm_provider.py`)
 > 📊 **Difficulty:** `🟡 Medium-Easy` | ⏱️ **Senior Dev Benchmark:** `30 – 45 mins` | 🎯 **Your Target Time:** `1h 15m – 1h 45m`
-- [ ] Implement Unified LLM Interface (Strategy Pattern / Adapter):
-  - [ ] Support `LLM_PROVIDER="ollama"` (100% private local) and `LLM_PROVIDER="cloud"` (Groq/OpenAI/Gemini for ultra-low latency)
-  - [ ] Standardized contract: `chat_completion(messages: list[dict], model: str, json_mode: bool = False) -> str`
-  - [ ] Configuration toggle in `config.py`: swap between **Local Privacy Mode** and **Turbo Cloud Mode** via single env flag with zero agent code changes.
+- [x] Implement Unified LLM Interface (Strategy Pattern / Adapter):
+  - [x] Support `LLM_PROVIDER="ollama"` (100% private local) and `LLM_PROVIDER="cloud"` (Groq/OpenAI/Gemini for ultra-low latency)
+  - [x] Standardized contract: `chat_completion(messages: list[dict], model: str, json_mode: bool = False) -> str`
+  - [x] Configuration toggle in `config.py`: swap between **Local Privacy Mode** and **Turbo Cloud Mode** via single env flag with zero agent code changes.
 
 #### Block 1.1: Fast Copilot Agent (`agents/Fast_agent.py`)
 > 📊 **Difficulty:** `🟡 Medium` | ⏱️ **Senior Dev Benchmark:** `45 – 60 mins` | 🎯 **Your Target Time:** `1h 45m – 2h 30m`
@@ -72,11 +72,11 @@
 
 #### Block 1.1b: Conversational Burst Aggregator & Semantic Chunking (`ingestion/burst_aggregator.py`)
 > 📊 **Difficulty:** `🟡 Medium` | ⏱️ **Senior Dev Benchmark:** `45 – 60 mins` | 🎯 **Your Target Time:** `1h 30m – 2h 00m`
-- [ ] Implement Natural Dialogue Speaker-Turn Segmentation:
-  - [ ] Group consecutive rapid-fire fragments from the same sender into a single coherent thought
-  - [ ] Dynamic split conditions: Speaker transition OR conversation inactivity gap ($\Delta t > 10\text{ mins}$) OR token ceiling
-  - [ ] Maintain atomic messages in SQLite while indexing rich semantic burst passages into `embeddings`
-- [ ] Re-index vector store: compress 28,000+ noisy atomic vectors into ~5,000 dense semantic thought bursts.
+- [x] Implement Natural Dialogue Speaker-Turn Segmentation:
+  - [x] Group consecutive rapid-fire fragments from the same sender into a single coherent thought
+  - [x] Dynamic split conditions: Speaker transition OR conversation inactivity gap ($\Delta t > 10\text{ mins}$) OR token ceiling
+  - [x] Maintain atomic messages in SQLite while indexing rich semantic burst passages into `embeddings`
+- [x] Re-index vector store: compress 28,000+ noisy atomic vectors into ~5,000 dense semantic thought bursts.
 
 #### Block 1.2: Deep EQ Relationship Analyst (`agents/analyst_agent.py`)
 > 📊 **Difficulty:** `🟠 Medium-Hard` | ⏱️ **Senior Dev Benchmark:** `45 – 60 mins` | 🎯 **Your Target Time:** `2h 00m – 2h 45m`

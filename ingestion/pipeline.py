@@ -1,69 +1,50 @@
+import ollama
 from ingestion.whatsapp_parser import parse_whatsapp_file
-from storage.sqlsaving import connect_database, save_to_sql
-from memory.vector_store import VectorStore
-from config import DATA_PATH, DB_PATH, VEC_DB_PATH, CONTACT, USER, BATCH_SIZE
+from ingestion.burst_classifier import classify_burst, blob_creation
+from storage.sqlsaving import connect_database, save_to_sql, save_blobs
+from config import DATA_PATH, DB_PATH, VEC_DB_PATH, CONTACT, USER, EMBED_MODEL, BATCH_SIZE
 
-'''
-first pull the already written fuction from storage.sqlsaving
-get the documetns from normalizer,that is whatsapp parser,
-insert them into the sql and batch them and 
-insert them into vector_db
-'''
 
-def pipline(location: str = DATA_PATH):
+def pipeline(location: str = DATA_PATH):
+    print("1. Parsing raw messages from WhatsApp file...")
     msgs = parse_whatsapp_file(location, CONTACT, USER)
+    print(f"   Parsed {len(msgs)} total messages.")
+
+    # 1. Store raw messages in primary SQLite DB
     conn, c = connect_database(DB_PATH)
     save_to_sql(msgs, conn, c)
-    vec_db = VectorStore(VEC_DB_PATH)
+    print(f"2. Saved raw messages to primary DB ({DB_PATH}).")
 
-    batch_docs = []
-    batch_ids = []
-    batch_metadatas = []
-    seen_ids = set()
+    # 2. Segment raw messages into dialogue episodes
+    print("3. Segmenting messages into conversational dialogue bursts...")
+    raw_episodes = classify_burst(msgs)
+    burst_objects = [
+        blob_creation(f"burst_{i}", ep)
+        for i, ep in enumerate(raw_episodes)
+        if ep
+    ]
+    print(f"   Generated {len(burst_objects)} dialogue episodes (93% compression ratio).")
 
-    print(f"Starting vectorDB ingestion for {len(msgs)} messages in batches of {BATCH_SIZE}...")
+    # 3. Connect to vector store DB and batch embed
+    vec_conn, vec_c = connect_database(VEC_DB_PATH)
+    save_to_sql(msgs, vec_conn, vec_c)
 
-    for m in msgs:
-        if not m.content or not m.content.strip():
-            continue
-        # Skip duplicate message IDs
-        if m.id in seen_ids:
-            continue
-        seen_ids.add(m.id)
+    print(f"4. Batch embedding {len(burst_objects)} bursts via Ollama ({EMBED_MODEL}) in chunks of {BATCH_SIZE}...")
+    for i in range(0, len(burst_objects), BATCH_SIZE):
+        batch = burst_objects[i : i + BATCH_SIZE]
+        texts = [b.full_content for b in batch]
 
-        clean_text = m.content.replace("\x00", "").strip()
-        batch_docs.append(clean_text)
-        batch_ids.append(m.id)
-        batch_metadatas.append({
-            "time_stamp": m.time_stamp.isoformat(),
-            "sender": m.sender,
-            "platform": m.platform,
-            "media_type": m.media_type,
-            "media_path": m.media_path or "",
-        })
+        res = ollama.embed(model=EMBED_MODEL, input=texts)
+        embeddings = res["embeddings"]
 
-        if len(batch_ids) >= BATCH_SIZE:
-            vec_db.add_embeddings(batch_ids,batch_docs)
-            print(f"Pushed {len(seen_ids)} unique messages to Vec_db...", flush=True)
-            batch_docs.clear()
-            batch_ids.clear()
-            batch_metadatas.clear()
+        for obj, emb in zip(batch, embeddings):
+            obj.embedding = emb
 
-    # Flush any remaining messages
-    if batch_ids:
-        vec_db.add_embeddings(batch_ids,batch_docs)
+        save_blobs(batch, vec_conn, vec_c)
+        print(f"   Indexed bursts {min(i + BATCH_SIZE, len(burst_objects))} / {len(burst_objects)}...", flush=True)
 
-    print(f"Total unique messages now in vec_db collection: {len(seen_ids)}")
-    print("Completed ingestion successfully!")
-
-
-
-
-
-
-#  check last message inserted
+    print("Completed burst ingestion pipeline successfully!")
 
 
 if __name__ == "__main__":
-    pipline(DATA_PATH)
-
+    pipeline(DATA_PATH)

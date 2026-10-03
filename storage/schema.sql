@@ -11,3 +11,14 @@ CREATE TABLE IF NOT EXISTS messages(
 );
 CREATE INDEX IF NOT EXISTS idx_msg_contact_time
 ON messages(contact_name,time_stamp DESC);
+
+CREATE TABLE IF NOT EXISTS message_bursts (
+    id TEXT PRIMARY KEY,
+    contact_name TEXT,
+    platform TEXT,
+    start_time TEXT,
+    end_time TEXT,
+    message_ids TEXT,   -- Serialized JSON list of IDs!
+    content TEXT,
+    embedding BLOB
+);

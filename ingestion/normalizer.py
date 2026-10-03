@@ -11,7 +11,6 @@ def generate_msg_id(contact_name: str, time_stamp_str: str, sender: str, content
 
 @dataclass
 class MessageObject:
-    id= str
     contact_name: str
     platform: str
     time_stamp: datetime
@@ -41,3 +40,14 @@ class MessageObject:
             "embedding_id": self.embedding_id,
         }
 
+class blobed_obj:
+    def __init__(self,id,full_content,msg_ids,platform,contact_name,start_time,end_time):
+        self.id=id
+        self.full_content=full_content
+        self.msg_ids=msg_ids
+        self.platform=platform
+        self.contact_name=contact_name
+        self.start_time=start_time
+        self.end_time=end_time
+        self.duration = (end_time - start_time).total_seconds() / 60
+        self.embedding=None

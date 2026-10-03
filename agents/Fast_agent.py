@@ -54,10 +54,12 @@ class FastChatAgent:
         results=self.vector_store.timed_search(target,k=5)
 
         if results:
-            context_messages=self.vector_store.context_window_messages(results[0]["id"],window=5)
-            formatted_context = "\n".join([f"[{msg[1]}] {msg[2]}: {msg[3]}" for msg in context_messages])
+            formatted_context = "\n---\n".join([r["content"] for r in results[:2] if "content" in r and r["content"]])
+            if not formatted_context:
+                context_messages = self.vector_store.context_window_messages(results[0]["id"], window=5)
+                formatted_context = "\n".join([f"[{msg[1]}] {msg[2]}: {msg[3]}" for msg in context_messages])
         else:
-            formatted_context="no data found"
+            formatted_context = "no data found"
 
         self.history.append({
             "role": "user",
