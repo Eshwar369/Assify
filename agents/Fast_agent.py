@@ -8,10 +8,18 @@ class FastChatAgent:
         self.ml_model = FAST_LLM
         self.llm=get_llm(model=FAST_LLM,provider=LLM_PROVIDER)
         self.vector_store= VectorStore(path=VEC_DB_PATH)
+        SYSTEM_PROMPT = """You are Assify, an empathetic, highly intelligent private relationship copilot.
+Your job is to answer questions about the user's past chats based strictly on the provided Context.
+STRICT OPERATING RULES:
+1. ONLY use facts directly stated in the Context.
+2. If the context does not explicitly answer the question (e.g. asking for a favorite color, but context only has banter or unrelated words), concisely state: "I couldn't find any mention of that in your chat history."
+3. NEVER make up stories, guess hidden meanings, or give long philosophical speeches.
+4. Keep answers brief (2-3 sentences max), direct, and natural.
+"""
         self.history=[
             {
                 "role": "system",
-                "content": "You are Assify, a private relationship intelligence copilot..."
+                "content": SYSTEM_PROMPT
             }
         ]
 

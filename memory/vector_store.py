@@ -1,122 +1,144 @@
 import sqlite3
 import numpy as np
 import ollama
-import math
-from datetime import datetime
-from storage.sqlsaving import connect_database
-from memory.embed_math import cosine_sim
+from memory.embed_math import cosine_sim, compute_hybrid_score
 from config import VEC_DB_PATH, DB_PATH, EMBED_MODEL, HALF_LIFE_DAYS
+from storage.sqlsaving import connect_database
 
 
 class VectorStore:
     def __init__(self, path: str = VEC_DB_PATH):
-        self.conn,self.cursor = connect_database(path)
+        self.conn, self.cursor = connect_database(path)
         self.cursor.execute("PRAGMA journal_mode=WAL;")
-        self.create_table()
 
-    def create_table(self):
-        self.cursor.execute("""
-            CREATE TABLE IF NOT EXISTS embeddings (
-                id text PRIMARY KEY,
-                embedding BLOB NOT NULL
-                );
-        """)
-        self.conn.commit()
-
-    def add_embeddings(self, ids, msgs):
-        embeddings = [np.array(embedding, dtype=np.float32).tobytes() for embedding in ollama.embed(model=EMBED_MODEL, input=msgs)["embeddings"]]
-        self.cursor.executemany("INSERT OR IGNORE INTO embeddings (id, embedding) VALUES (?, ?)", zip(ids, embeddings))
-        self.conn.commit()
-
-    def search(self, query_embedding, k=5):
-        question_vector = ollama.embeddings(model=EMBED_MODEL, prompt=query_embedding)["embedding"]
-        self.cursor.execute("SELECT id, embedding FROM embeddings")
-        rows = self.cursor.fetchall()
-        sims = []
-        for row in rows:
-            embedding = np.frombuffer(row[1], dtype=np.float32)
-            similarity = cosine_sim(embedding, question_vector)
-            sims.append((row[0], similarity))
-        sims.sort(key=lambda x: x[1], reverse=True)
-        return sims[:k]
-
-    def timed_search(self, query_text: str, k: int = 5, half_life_days: float = HALF_LIFE_DAYS):
+    def search(self, query_text: str, k: int = 5):
         """
-        Time-weighted RAG search:
-        FinalScore = CosineSimilarity * exp(-lambda * delta_t)
+        Pure semantic search across dialogue bursts (message_bursts).
+        No recency penalty is applied here.
         """
-        question_vector = ollama.embeddings(model=EMBED_MODEL, prompt=query_text)["embedding"]
+        res = ollama.embeddings(model=EMBED_MODEL, prompt=query_text)
+        question_vector = res["embedding"]
+
         self.cursor.execute("""
-            SELECT e.id, e.embedding, m.time_stamp, m.sender, m.content
-            FROM embeddings e
-            JOIN messages m ON e.id = m.id
+            SELECT id, embedding, start_time, contact_name, content
+            FROM message_bursts
         """)
         rows = self.cursor.fetchall()
         if not rows:
             return []
 
-        now_dt = datetime.now()
-        decay_lambda = 0.693 / half_life_days
+        sims = []
+        for row in rows:
+            if not row[1]:
+                continue
+            embedding = np.frombuffer(row[1], dtype=np.float32)
+            similarity = float(cosine_sim(embedding, question_vector))
+            sims.append({
+                "id": row[0],
+                "similarity": similarity,
+                "final_score": similarity,
+                "timestamp": row[2],
+                "contact_name": row[3],
+                "content": row[4]
+            })
+
+        sims.sort(key=lambda x: x["similarity"], reverse=True)
+        return sims[:k]
+
+    def timed_search(
+        self,
+        query_text: str,
+        k: int = 5,
+        half_life_days: float = HALF_LIFE_DAYS,
+        use_decay: bool = False
+    ):
+        """
+        Retrieval interface for copilot and analyst agents.
+        
+        Default (use_decay=False): Pure semantic search without time distortion.
+        When use_decay=True: Uses bounded soft-floor decay (compute_hybrid_score)
+        so historical ground-truth is never wiped out.
+        """
+        if not use_decay:
+            return self.search(query_text=query_text, k=k)
+
+        res = ollama.embeddings(model=EMBED_MODEL, prompt=query_text)
+        question_vector = res["embedding"]
+
+        self.cursor.execute("""
+            SELECT id, embedding, start_time, contact_name, content
+            FROM message_bursts
+        """)
+        rows = self.cursor.fetchall()
+        if not rows:
+            return []
 
         scored = []
         for row in rows:
-            msg_id = row[0]
+            if not row[1]:
+                continue
             emb = np.frombuffer(row[1], dtype=np.float32)
+            sim = float(cosine_sim(emb, question_vector))
             time_str = row[2]
-            sender = row[3]
-            content = row[4]
 
-            sim = cosine_sim(emb, question_vector)
-            try:
-                msg_dt = datetime.fromisoformat(time_str.replace(" ", "T"))
-                days_ago = max(0.0, (now_dt - msg_dt).total_seconds() / 86400.0)
-            except Exception:
-                days_ago = 0.0
+            decay_info = compute_hybrid_score(
+                similarity=sim,
+                timestamp_str=time_str,
+                half_life_days=half_life_days,
+                min_floor=0.5
+            )
 
-            time_factor = math.exp(-decay_lambda * days_ago)
-            final_score = sim * time_factor
             scored.append({
-                "id": msg_id,
-                "final_score": final_score,
+                "id": row[0],
+                "final_score": decay_info["final_score"],
                 "similarity": sim,
-                "time_factor": time_factor,
+                "time_factor": decay_info["recency_multiplier"],
+                "days_ago": decay_info["days_ago"],
                 "timestamp": time_str,
-                "sender": sender,
-                "content": content
+                "contact_name": row[3],
+                "content": row[4]
             })
 
         scored.sort(key=lambda x: x["final_score"], reverse=True)
         return scored[:k]
-    def context_window_messages(self,message_id:str,window:int=5):
-    #once we find the id of the highest similarity or use case we
-    #call this fuction to get the full context window of messages
-        side=window//2
-        self.cursor.execute("SELECT rowid FROM messages WHERE id = ?", (message_id,))
-        row_id = self.cursor.fetchone()
-        if not row_id:
-            return []
-        row_id=row_id[0]
-        self.cursor.execute("""
-            SELECT id,time_stamp,sender,content
-            FROM messages
-            WHERE rowid BETWEEN ? AND ?
-            ORDER BY time_stamp ASC
-        """,(row_id-side,row_id+side))
-        rows=self.cursor.fetchall()
-        return rows
+
+    def context_window_messages(self, burst_id: str, window: int = 5):
+        """
+        Returns dialogue content for the given burst episode.
+        """
+        self.cursor.execute("SELECT content FROM message_bursts WHERE id = ?", (burst_id,))
+        row = self.cursor.fetchone()
+        if row:
+            return [(burst_id, "", "", row[0])]
+        return []
+
     def close(self):
         self.conn.close()
+
 
 if __name__ == "__main__":
     import sys
     sys.stdout.reconfigure(encoding='utf-8')
     db = VectorStore(VEC_DB_PATH)
+'''
+    print("=" * 65)
+    print("🔍 ASSIFY VECTOR STORE: SIDE-BY-SIDE RETRIEVAL TEST")
+    print("=" * 65)
 
-    print("--- Testing Time-Weighted Search (Decay Enabled) ---")
-    query = "thank you soo much"
-    results = db.timed_search(query_text=query, k=5, half_life_days=30)
-    for r in results:
-        print(f"[{r['timestamp']}] ({r['sender']}): {r['content']}")
-        print(f"   Final: {r['final_score']:.4f} | Sim: {r['similarity']:.4f} | Recency: {r['time_factor']:.4f}\n")
+    test_query = "thank you"
+    print(f"\nTest Target Query: \"{test_query}\"")
 
+    print("\n--- [MODE 1] PURE SEMANTIC SEARCH (No Time Distortion) ---")
+    pure_results = db.search(query_text=test_query, k=3)
+    for i, r in enumerate(pure_results, 1):
+        print(f"\n#{i} [{r['timestamp']}] ({r['contact_name']}) | Similarity: {r['similarity']:.4f}")
+        print(f"Dialogue:\n{r['content'].strip()}")
+        print("-" * 50)
 
+    print("\n--- [MODE 2] BOUNDED SOFT-FLOOR DECAY (use_decay=True) ---")
+    decay_results = db.timed_search(query_text=test_query, k=3, use_decay=True)
+    for i, r in enumerate(decay_results, 1):
+        print(f"\n#{i} [{r['timestamp']}] ({r['contact_name']}) | Final: {r['final_score']:.4f} (Sim: {r['similarity']:.4f} x FloorMultiplier: {r['time_factor']:.2f}, {r['days_ago']:.1f} days ago)")
+        print(f"Dialogue:\n{r['content'].strip()}")
+        print("-" * 50)
+'''
