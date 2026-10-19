@@ -21,7 +21,10 @@
 - **The Delulu Production Benchmark:**
   - On every feature or problem, explicitly explain:
     1. *How Delulu Check solved it in production* (based on reverse-engineered APK telemetry, bundle assets, and routes).
-    2. *How Assify can solve it* (evaluating whether to replicate, improve, or adapt for privacy and performance).
+- **Deep Industry Research Protocol (Zero Lazy Assumptions):**
+  - Never jump to conclusions or assume our first instinct is the best solution.
+  - Before proposing or finalizing any architectural or algorithmic solution, actively research state-of-the-art production patterns, real consumer apps, and conversational NLP literature.
+  - Reject false binaries (e.g. Pure Math vs Pure LLM). Actively search for the non-obvious, production-grade hybrid middle ground.
 - **Proactive Socratic Questioning:** Ask targeted, high-leverage questions when multiple architectural paths exist to ensure the user leads all strategic choices.
 
 ---

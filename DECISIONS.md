@@ -97,3 +97,22 @@ We pivoted from pure RAG to **Pre-computed Structured Profiling**:
 1. At upload time, compute **0-LLM mathematical chronemics** (initiation ratio, median delay, double-texts).
 2. Run a **4-pass LLM synthesizer** to generate the 17 Acts and store them in the `report_acts` table.
 3. The mobile app and Doctor Delulu coach read from this **pre-computed relationship dossier**, ensuring instant loading and zero hallucination.
+
+---
+
+### ADR 006: Conversational Dynamics — Neuro-Symbolic Seam Pipeline vs Pure Math vs Pure LLM
+
+#### Status: ACCEPTED
+#### Context:
+Accurately determining conversational initiation ratios, response latencies, and chasing behavior across 15,000+ personal WhatsApp messages.
+
+#### The Problem:
+- **Pure Math Failure:** Naive `gap > 4 hours = initiation` misclassifies routine "Good Morning" greetings as new initiations and misclassifies desperate follow-ups after being left on read as "initiating".
+- **Pure LLM Failure:** Asking an LLM to count initiations across thousands of messages leads to catastrophic arithmetic hallucinations.
+
+#### Decision & Rationale:
+We adopted the **Neuro-Symbolic Seam Pipeline** ([`backend/analytics/CHRONEMICS_SPEC.md`](file:///c:/Users/DELL/gen%20ai/Assify/backend/analytics/CHRONEMICS_SPEC.md)):
+1. **Symbolic Pass:** Python merges consecutive texts within 90s into single conversational turns, computes word counts, and isolates transition seams where silence $> 3.5\text{ hours}$.
+2. **Neuro Pass:** A single micro-prompt classifies ~30 transition seams into `TRUE_INITIATION`, `CHASE_FOLLOWUP`, `DELAYED_ANSWER`, or `ROUTINE_RITUAL`.
+3. **Grounded Synthesis:** Initiation is calculated only on verified `TRUE_INITIATION` events, eliminating both naive math errors and LLM hallucinations.
+

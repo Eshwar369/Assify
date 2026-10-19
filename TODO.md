@@ -44,9 +44,12 @@
 
 ---
 
-## ⏳ Upcoming Sprint: Sprint 2 — Chat Ingestion & Chronemics Math (Days 2–3)
-- [ ] `[P0]` Multi-line WhatsApp regex parser (`backend/ingestion/parser.py`).
-- [ ] `[P0]` Mathematical Chronemics calculation engine (`backend/analytics/chronemics.py`).
-- [ ] `[P1]` Populate `messages` and `chronemics_stats` from sample chat export.
-- [ ] `[P2]` Preference & Gift extractor rule-tagger (`backend/ingestion/preference_tagger.py`).
+## ⏳ Active Sprint: Sprint 2 — Chat Ingestion & Neuro-Symbolic Chronemics (Days 2–3)
+- [x] `[P0]` Multi-line WhatsApp regex parser (`backend/ingestion/parser.py`) — Handles iOS & Android, multi-line continuations, system messages, media tagging, sender detection.
+- [x] `[P0]` Neuro-Symbolic Chronemics architecture specification (`backend/analytics/CHRONEMICS_SPEC.md`).
+- [x] `[P0]` Chronemics calculation engine (`backend/analytics/chronemics.py`) — Burst aggregation, silence seams, GPT-4o-mini seam classification, grounded metric synthesis.
+- [x] `[P1]` End-to-end Chronemics live verification (`backend/analytics/run_analysis.py`) — Tested on 14,032 real messages with GPT-4o-mini.
+- [ ] `[P0]` Ingestion service & database persistence (`backend/ingestion/ingest_service.py`).
+- [ ] `[P2]` Preference & Gift extractor rule-tagger for The Keep (`backend/ingestion/preference_tagger.py`).
+
 
