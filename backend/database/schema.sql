@@ -136,16 +136,20 @@ CREATE TABLE IF NOT EXISTS relationship_diary (
 );
 CREATE INDEX IF NOT EXISTS idx_diary_contact ON relationship_diary(contact_id, period_start DESC);
 
--- 10. The Keep (Preferences, Gift Ideas & Watchlist Vault)
+-- 10. The Keep (Preferences, Gift Ideas, Nicknames & Memory Vault)
 CREATE TABLE IF NOT EXISTS preferences_vault (
     id              INTEGER PRIMARY KEY AUTOINCREMENT,
     contact_id      TEXT NOT NULL,
-    category        TEXT NOT NULL,                 -- 'gift' | 'movie' | 'food' | 'place' | 'dislike'
-    item_name       TEXT NOT NULL,                 -- e.g. "Lilies", "Inception", "Silver necklace"
-    context_quote   TEXT,                          -- Exact message: "Omg I love lilies so much"
+    category        TEXT NOT NULL,                 -- 'gift' | 'movie' | 'food' | 'place' | 'dislike' | 'nickname' | 'inside_joke' | 'date_idea'
+    item_name       TEXT NOT NULL,                 -- e.g. "Lilies", "Inception", "Zombiee"
+    context_quote   TEXT,                          -- Exact message quote
     time_stamp      DATETIME,                      -- When it was mentioned
     status          TEXT DEFAULT 'saved',          -- 'saved' | 'completed' | 'bought' | 'watched'
+    target_person   TEXT DEFAULT 'contact',        -- 'contact' | 'user' | 'both'
+    ai_generated    BOOLEAN DEFAULT 0,             -- 1 if synthesized date idea / gift idea, 0 if mined
+    metadata        TEXT,                          -- Extra JSON attributes
     created_at      DATETIME DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY(contact_id) REFERENCES contacts(id) ON DELETE CASCADE
 );
 CREATE INDEX IF NOT EXISTS idx_pref_contact_cat ON preferences_vault(contact_id, category);
+

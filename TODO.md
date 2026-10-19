@@ -44,12 +44,36 @@
 
 ---
 
-## ⏳ Active Sprint: Sprint 2 — Chat Ingestion & Neuro-Symbolic Chronemics (Days 2–3)
+## ⏳ Sprint 2 — Chat Ingestion & Neuro-Symbolic Chronemics (Days 2–3)
 - [x] `[P0]` Multi-line WhatsApp regex parser (`backend/ingestion/parser.py`) — Handles iOS & Android, multi-line continuations, system messages, media tagging, sender detection.
 - [x] `[P0]` Neuro-Symbolic Chronemics architecture specification (`backend/analytics/CHRONEMICS_SPEC.md`).
 - [x] `[P0]` Chronemics calculation engine (`backend/analytics/chronemics.py`) — Burst aggregation, silence seams, GPT-4o-mini seam classification, grounded metric synthesis.
 - [x] `[P1]` End-to-end Chronemics live verification (`backend/analytics/run_analysis.py`) — Tested on 14,032 real messages with GPT-4o-mini.
-- [ ] `[P0]` Ingestion service & database persistence (`backend/ingestion/ingest_service.py`).
-- [ ] `[P2]` Preference & Gift extractor rule-tagger for The Keep (`backend/ingestion/preference_tagger.py`).
+- [x] `[P0]` Ingestion service & database persistence (`backend/ingestion/ingest_service.py`) — Single-transaction atomic write of contacts, messages, chronemics, and Keep items in 0.19s.
+
+---
+
+## 🏰 Sprint 2.5 — The Keep: Relationship Memory & Date Oracle Engine
+- [x] `[P0]` Master Product Specification for The Keep (`THE_KEEP_SPEC.md`).
+- [x] `[P0]` Database Schema 2.1 migration for `preferences_vault` (target_person, ai_generated, metadata).
+- [ ] `[P0]` 2-Stage Neuro-Symbolic Funnel in `backend/ingestion/preference_tagger.py`:
+  - Stage 1: Broad multi-category trigger miner (food, movie, gift, place, dislike, nickname, inside_joke).
+  - Stage 2: Context stitching with preceding message turns (pronoun & link resolution).
+  - Stage 3: LLM Entity Extraction & Banter/Sarcasm Filter (`gpt-4o-mini`).
+  - Stage 4: AI Date Idea & Gift Oracle synthesis.
+- [ ] `[P1]` Integrate into `ingest_service.py` and run live test on 14,032 messages in `data/assify_data.txt`.
+
+
+---
+
+## 🎯 Active Sprint: Sprint 3 — The 17 Theatrical Acts & Profiler (Days 4–6)
+- [ ] `[P0]` Pydantic models for all 17 Acts (`backend/profiler/acts_schemas.py`).
+- [ ] `[P0]` The 4-Pass Synthesizer Engine with `gpt-4o-mini` (`backend/profiler/synthesizer.py`):
+  - Pass 1: Global Relationship Diagnosis, Delulu Score, and Power Dynamic.
+  - Pass 2: Acts 1–6 (The Surface & Rhythm: Vibe, Delay, Double Texts, Initiation).
+  - Pass 3: Acts 7–12 (The Psychology & Power: Attachment styles, red/green flags, receipts).
+  - Pass 4: Acts 13–17 (The Forecast & Final Verdict: Greatest Hits, Survival Odds, Roast).
+- [ ] `[P1]` Populate `relationship_profiles`, `report_acts`, `evidence_locker`, and `greatest_hits` in SQLite.
+
 
 
