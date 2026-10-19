@@ -100,6 +100,11 @@ We pivoted from pure RAG to **Pre-computed Structured Profiling**:
 
 ---
 
+- [ADR 006: Conversational Dynamics — Neuro-Symbolic Seam Pipeline vs Pure Math vs Pure LLM](#adr-006-conversational-dynamics--neuro-symbolic-seam-pipeline-vs-pure-math-vs-pure-llm)
+- [ADR 007: 4-Epoch Relational Sampler & Grounded Matrix vs Flat Context Sampling](#adr-007-4-epoch-relational-sampler--grounded-matrix-vs-flat-context-sampling)
+
+---
+
 ### ADR 006: Conversational Dynamics — Neuro-Symbolic Seam Pipeline vs Pure Math vs Pure LLM
 
 #### Status: ACCEPTED
@@ -115,4 +120,27 @@ We adopted the **Neuro-Symbolic Seam Pipeline** ([`backend/analytics/CHRONEMICS_
 1. **Symbolic Pass:** Python merges consecutive texts within 90s into single conversational turns, computes word counts, and isolates transition seams where silence $> 3.5\text{ hours}$.
 2. **Neuro Pass:** A single micro-prompt classifies ~30 transition seams into `TRUE_INITIATION`, `CHASE_FOLLOWUP`, `DELAYED_ANSWER`, or `ROUTINE_RITUAL`.
 3. **Grounded Synthesis:** Initiation is calculated only on verified `TRUE_INITIATION` events, eliminating both naive math errors and LLM hallucinations.
+
+---
+
+### ADR 007: 4-Epoch Relational Sampler & Grounded Matrix vs Flat Context Sampling
+
+#### Status: ACCEPTED
+#### Context:
+Extracting psychological profiles, power balance, and theatrical roasts across multi-year WhatsApp archives (up to 40,000 messages) without suffering from hallucinated internet stereotypes, temporal flattening, or cultural tone-deafness.
+
+#### The Problem:
+1. **Temporal Flatness:** Flat sampling treated early tentative texts from months ago with the same weight as recent late-night video calls and deep intimacy.
+2. **Statistical Inversion:** Prompt schemas with hardcoded example strings (`"e.g. The Over-Invested Chronic Texter"`, `"The Snack-Sized Minimalist"`) biased the LLM to invent an "absent dry texter" trope even when the Contact sent 60% of all messages (23,470 messages) and 6,481 double-texts.
+3. **Cultural Blindness:** South Asian/Telugu-English colloquial banter (*"pulihora raja"*, *"chi po ra"*, *"babe entra"*) and family-proximate privacy constraints (muting video calls because parents are sleeping) were misinterpreted as toxic rejection or cold evasiveness.
+
+#### Decision & Rationale:
+We implemented the **4-Epoch Segmented Relational Profiler & Grounding Matrix**:
+1. **4-Epoch Relational Slicing:**
+   - **Epoch 1: Genesis & Calibration (First 15%):** Captures early courtship etiquette, icebreakers, and initial spark.
+   - **Epoch 2: The Crucible & Vulnerability (Next 25%):** Captures pivotal emotional/health turning points (surgery, deep worry, first vulnerability).
+   - **Epoch 3: Habitual Equilibrium (Next 30%):** Captures daily comfort, inside jokes, nicknames, and stabilized banter.
+   - **Epoch 4: The Present Operating Reality (Last 30%):** Given a **mandatory 75% recency weighting** for Act 1 (Diagnosis), Act 2 (Delulu Meter), Act 7 (Chemistry), and Act 17 (Verdict).
+2. **Deterministic Grounding Matrix:** Passes pre-computed volume shares, double-text ratios, and response speeds into prompts as non-negotiable arithmetic boundaries. Prohibits "minimalist" archetypes for contacts holding $\ge 50\%$ volume share.
+3. **Sociolinguistic Decorum Engine:** Explicitly decodes multilingual code-switching, affectionate informal sparring, and family privacy realities, preserving sharp comedic wit while anchoring truth in real conversational facts.
 

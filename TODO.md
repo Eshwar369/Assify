@@ -56,33 +56,51 @@
 ## 🏰 Sprint 2.5 — The Keep: Relationship Memory & Date Oracle Engine
 - [x] `[P0]` Master Product Specification for The Keep (`THE_KEEP_SPEC.md`).
 - [x] `[P0]` Database Schema 2.1 migration for `preferences_vault` (target_person, ai_generated, metadata).
-- [ ] `[P0]` 2-Stage Neuro-Symbolic Funnel in `backend/ingestion/preference_tagger.py`:
+- [x] `[P0]` 2-Stage Neuro-Symbolic Funnel in `backend/ingestion/preference_tagger.py`:
   - Stage 1: Broad multi-category trigger miner (food, movie, gift, place, dislike, nickname, inside_joke).
   - Stage 2: Context stitching with preceding message turns (pronoun & link resolution).
   - Stage 3: LLM Entity Extraction & Banter/Sarcasm Filter (`gpt-4o-mini`).
   - Stage 4: AI Date Idea & Gift Oracle synthesis.
-- [x] `[P1]` Integrate into `ingest_service.py` and run live test on 14,032 messages in `data/assify_data.txt`.
+- [x] `[P1]` Integrate into `ingest_service.py` and run live test on 39,154 messages in `data/Chatty/19-10-2026/`.
 
 ---
 
-## 🎭 Sprint 3 — The 17 Theatrical Acts & Profiler (Days 4–6)
+## 🎭 Sprint 3 — The 17 Theatrical Acts & 4-Epoch Grounded Profiler (Days 4–6)
 - [x] `[P0]` Pydantic models for all 17 Acts (`backend/profiler/acts_schemas.py`).
-- [x] `[P0]` The 4-Pass Synthesizer Engine with `gpt-4o-mini` (`backend/profiler/synthesizer.py`):
+- [x] `[P0]` The 4-Epoch Relational Sampler & Grounding Matrix (`backend/profiler/synthesizer.py`):
+  - Dynamic 4-epoch partitioning (Genesis, Crucible, Equilibrium, Present Reality with 75% recency weight).
+  - Deterministic Statistical Grounding Matrix (hard volume, latency, and archetype bounds).
+  - Cultural Pragmatics & Sociolinguistic Decorum Engine (Telugu/Hinglish banter, family privacy).
+  - Debiased dynamic archetype generation (zero stereotyping).
+- [x] `[P0]` The 4-Pass Synthesizer Engine with `gpt-4o-mini`:
   - Pass 1: Global Relationship Diagnosis, Delulu Score, and Power Dynamic.
-  - Pass 2: Acts 1–6 (The Surface & Rhythm: Vibe, Delay, Double Texts, Initiation).
-  - Pass 3: Acts 7–12 (The Psychology & Power: Attachment styles, red/green flags, receipts).
-  - Pass 4: Acts 13–17 (The Forecast & Final Verdict: Greatest Hits, Survival Odds, Roast).
-- [x] `[P1]` Populate `relationship_profiles`, `report_acts` (all 17 acts), `evidence_locker`, and `greatest_hits` in SQLite.
-- [x] `[P1]` End-to-end live verification (`backend/profiler/run_profiler.py`) on 14,032 messages in 45s.
+  - Pass 2: Acts 1–6 (Opening, Delulu Meter, Behavioral Profiles, Hidden Dynamics, Power Plays, Breakdown).
+  - Pass 3: Acts 7–12 (Chemistry Audit, Digital Rhythm, 4-Epoch Timeline, Red/Green Flags, Pop Culture).
+  - Pass 4: Acts 13–17 (Simulations, Playbook, Greatest Hits, Awards, Final Verdict).
+- [x] `[P1]` Populate `relationship_profiles` and `report_acts` (all 17 acts) in SQLite for 39,154 messages.
+- [x] `[P1]` End-to-end live verification (`backend/profiler/run_profiler.py`) on full 39,154 message chat in 35s.
 
 ---
 
-## ⚡ Active Sprint: Sprint 4 — FastAPI Endpoints & Contract Serving (Days 7–8)
-- [ ] `[P0]` FastAPI application entry point (`backend/main.py`) with CORS for React Native Expo.
-- [ ] `[P0]` Report endpoints (`GET /api/report/{contact_id}`, `GET /api/report/{contact_id}/acts`).
-- [ ] `[P0]` Ingestion endpoint (`POST /api/ingest/upload`).
-- [ ] `[P1]` The Keep endpoints (`GET /api/keep/{contact_id}`, `POST /api/keep/{contact_id}/item`).
-- [ ] `[P1]` Evidence Locker endpoints (`GET /api/evidence/{contact_id}`).
+## ⚡ Sprint 4 — FastAPI Endpoints & Contract Serving (Days 7–8)
+- [x] `[P0]` FastAPI application entry point (`backend/main.py`) with CORS for React Native Expo.
+- [x] `[P0]` Report endpoints (`GET /api/report/{contact_id}`, `GET /api/report/{contact_id}/acts`).
+- [x] `[P0]` Ingestion endpoint (`POST /api/ingest/upload`).
+- [x] `[P1]` The Keep endpoints (`GET /api/keep/{contact_id}`, `POST /api/keep/{contact_id}/item`, `PATCH`, `DELETE`).
+- [x] `[P1]` Evidence Locker endpoints (`GET /api/evidence/{contact_id}`, `GET /api/greatest-hits/{contact_id}`).
+- [x] `[P0]` Contacts listing endpoint (`GET /api/contacts`).
+- [x] `[P1]` Full API contract verification using `TestClient` (100% passed).
+
+---
+
+## 📱 Active Sprint: Sprint 5 — React Native Mobile Client Architecture & Scaffolding (Days 9–11)
+- [ ] `[P0]` Mobile architecture specification (`mobile/MOBILE_SPEC.md`).
+- [ ] `[P0]` Initialize React Native Expo SDK 54 project structure (`mobile/`).
+- [ ] `[P0]` Design system, dark-mode glassmorphic theme tokens, typography, and Lucide icons.
+- [ ] `[P1]` The 17-Act Theatrical Swiper Carousel (TikTok/Stories style vertical swiper).
+- [ ] `[P1]` The Delulu Meter animated radial gauge component.
+- [ ] `[P1]` The Keep tab with category filter chips and Date Oracle cards.
+
 
 
 

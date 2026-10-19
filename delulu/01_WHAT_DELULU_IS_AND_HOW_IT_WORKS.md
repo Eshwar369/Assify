@@ -27,6 +27,7 @@ Delulu Check is a **cloud-based AI relationship analysis app**. Users upload con
 | **Use Case** | One-shot report generation | Continuous real-time copilot |
 | **Input** | Upload once, get a report | Persistent memory, ongoing queries |
 | **Storage** | Server-side Supabase (PostgreSQL) | Local SQLite + ChromaDB |
+|   |   |   |
 
 ---
 
