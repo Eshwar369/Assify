@@ -27,18 +27,20 @@
 ### 📍 Milestone 1: Database Foundation & Schema 2.0 (Day 1)
 - [x] `[P0]` **Draft `backend/database/schema.sql` (Dynamic Contact Aliasing):**
   - Table 1: `contacts` (raw_name, display_name alias, user_name).
-  - Table 2: `messages` (contact_id, time_stamp, sender role, raw_sender, content).
+  - Table 2: `messages` (contact_id, time_stamp, sender role, raw_sender, content, media_path, media_meta).
   - Table 3: `chronemics_stats` (0-LLM initiation ratio, median delay, double-texts).
   - Table 4: `relationship_profiles` (delulu_score, power_ratio, attachment_styles).
   - Table 5: `report_acts` (act_number, act_name, payload_json).
   - Table 6: `evidence_locker` (quoted receipts, severity 1-5, commentary).
   - Table 7: `greatest_hits` (cringe, comedy, delusional quotes).
-  - Table 8: `coaching_sessions` & `coaching_messages`.
+  - Table 8: `advisor_sessions` & `advisor_messages`.
+  - Table 9: `relationship_diary` (monthly story chapters over time).
+  - Table 10: `preferences_vault` (The Keep: gifts, movies, food, places).
 - [x] `[P0]` **Build `backend/database/db.py`:**
   - `get_db_connection()` with WAL mode, foreign keys, and `sqlite3.Row` mapping.
   - `init_db()` to automatically execute DDL idempotently.
 - [x] `[P1]` **Verify Database Creation:**
-  - Schema executed on `backend/assify.db`; all 8 tables verified.
+  - Schema executed on `backend/assify.db`; all 10 tables verified.
 
 ---
 
@@ -46,3 +48,5 @@
 - [ ] `[P0]` Multi-line WhatsApp regex parser (`backend/ingestion/parser.py`).
 - [ ] `[P0]` Mathematical Chronemics calculation engine (`backend/analytics/chronemics.py`).
 - [ ] `[P1]` Populate `messages` and `chronemics_stats` from sample chat export.
+- [ ] `[P2]` Preference & Gift extractor rule-tagger (`backend/ingestion/preference_tagger.py`).
+

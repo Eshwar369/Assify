@@ -25,11 +25,15 @@
 - Tracks if the promise was acknowledged or dropped.
 - Displays an interactive **"Active Commitments Checklist"** so the user never drops a promise.
 
-### 1.4 The Wishlist & Taste Vault (Zero-Effort Gift Guide)
-- Automatically tags anytime a partner mentions something they love or want:
-  - *"Omg this bag is gorgeous"*, *"I really need to read that book"*, *"My favorite flowers are lilies"*, *"I hate chocolate with almonds"*.
-- Saves them into a dedicated preferences table with exact timestamps and context links.
-- When her birthday or anniversary approaches, Assify gives an instant, cited gift recommendation list.
+### 1.4 The Keep (Taste, Gifts, Movies & To-Do Vault)
+- An auto-updating personal "Keep" tracking everything your partner mentions:
+  - **🎁 Gift Ideas:** Items they casually fawned over (*"Omg these earrings are gorgeous"*, *"I really need a new Kindle case"*).
+  - **🎬 Watchlist & Movies:** Movies or shows they love, or said *"we should watch this together sometime"*.
+  - **🍕 Food & Dining Tastes:** Favorite meals, coffee orders, dietary preferences, and places they want to try (*"I've been dying to try that ramen spot"*).
+  - **📍 Places to Visit & Activities:** Travel dreams and date ideas dropped in conversation.
+  - **🚫 Dislikes & Red Lines:** Foods, behaviors, or things they explicitly despise (*"I hate coriander"*, *"I can't stand loud clubs"*).
+- **Interactive UI:** The user can browse categories, check off items as `bought`, `watched`, or `completed`, and view the exact chat receipt showing when and why it was saved.
+
 
 ---
 

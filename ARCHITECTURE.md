@@ -72,15 +72,15 @@ Assify/
 │   │   ├── acts_schemas.py    # Pydantic models for the 17 Acts
 │   │   ├── prompts.py         # System & few-shot prompt templates
 │   │   └── synthesizer.py     # Batch LLM execution pipeline
-│   ├── coach/                 # Doctor Delulu chat engine
-│   │   └── coach_service.py   # Dossier injection & streaming
-│   ├── ghost/                 # Ghost Writer reply composer
+│   ├── advisor/               # Relationship Advisor chat engine
+│   │   └── advisor_service.py # Dossier injection & streaming
+│   ├── replies/               # Smart Replier engine
 │   │   └── reply_service.py   # 3-Option triad generator
 │   ├── api/                   # FastAPI route handlers
 │   │   ├── routes_upload.py   # File upload & status polling
 │   │   ├── routes_report.py   # Fetch 17 Acts & stats
-│   │   ├── routes_coach.py    # Doctor Delulu chat endpoints
-│   │   └── routes_ghost.py    # Ghost writer endpoints
+│   │   ├── routes_advisor.py  # Advisor chat endpoints
+│   │   └── routes_replies.py  # Smart replier endpoints
 │   ├── config.py              # App settings & env loading
 │   ├── main.py                # FastAPI entrypoint
 │   └── requirements.txt       # Python dependencies

@@ -1,6 +1,6 @@
 -- ==============================================================================
 -- ASSIFY SCHEMA 2.0 (Relational SQLite DDL in WAL Mode)
--- Replicating Delulu Check's Production Entities with Dynamic Contact Aliasing
+-- Dynamic Contact Aliasing, Theatrical Acts, Diary Engine & The Keep
 -- ==============================================================================
 
 -- 1. Contact Registry & Identity Mapping
@@ -22,6 +22,8 @@ CREATE TABLE IF NOT EXISTS messages (
     raw_sender      TEXT NOT NULL,                 -- Original raw sender from export file
     content         TEXT NOT NULL,                 -- Cleaned message body
     media_type      TEXT DEFAULT 'text',           -- 'text' | 'voice' | 'image' | 'system'
+    media_path      TEXT,                          -- Local file path to audio/image if applicable
+    media_meta      TEXT,                          -- JSON metadata (duration_seconds, ocr_text, etc.)
     is_deleted      BOOLEAN DEFAULT 0,             -- Flag for deleted messages
     is_question     BOOLEAN DEFAULT 0,             -- Flag for question sentences
     FOREIGN KEY(contact_id) REFERENCES contacts(id) ON DELETE CASCADE
@@ -93,15 +95,15 @@ CREATE TABLE IF NOT EXISTS greatest_hits (
     id              INTEGER PRIMARY KEY AUTOINCREMENT,
     contact_id      TEXT NOT NULL,
     category        TEXT NOT NULL,                 -- 'cringe' | 'comedy' | 'delusional' | 'comeback'
-    quote           TEXT NOT NULL,
+    quote           TEXT NOT NULL,                 -- Quote text
     sender          TEXT NOT NULL,                 -- 'user' | 'contact'
     time_stamp      DATETIME,
     why_legendary   TEXT NOT NULL,
     FOREIGN KEY(contact_id) REFERENCES contacts(id) ON DELETE CASCADE
 );
 
--- 8. Doctor Delulu Coaching Sessions & Message Log
-CREATE TABLE IF NOT EXISTS coaching_sessions (
+-- 8. Relationship Advisor Sessions & Messages
+CREATE TABLE IF NOT EXISTS advisor_sessions (
     id              TEXT PRIMARY KEY,              -- UUID
     contact_id      TEXT NOT NULL,
     started_at      DATETIME DEFAULT CURRENT_TIMESTAMP,
@@ -109,11 +111,41 @@ CREATE TABLE IF NOT EXISTS coaching_sessions (
     FOREIGN KEY(contact_id) REFERENCES contacts(id) ON DELETE CASCADE
 );
 
-CREATE TABLE IF NOT EXISTS coaching_messages (
+CREATE TABLE IF NOT EXISTS advisor_messages (
     id              INTEGER PRIMARY KEY AUTOINCREMENT,
     session_id      TEXT NOT NULL,
     role            TEXT NOT NULL,                 -- 'user' | 'assistant'
     content         TEXT NOT NULL,
     created_at      DATETIME DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY(session_id) REFERENCES coaching_sessions(id) ON DELETE CASCADE
+    FOREIGN KEY(session_id) REFERENCES advisor_sessions(id) ON DELETE CASCADE
 );
+
+-- 9. Relationship Diary (Story Chapters over Time)
+CREATE TABLE IF NOT EXISTS relationship_diary (
+    id              INTEGER PRIMARY KEY AUTOINCREMENT,
+    contact_id      TEXT NOT NULL,
+    period_start    DATE NOT NULL,                 -- Start of this chapter (e.g. 2026-08-01)
+    period_end      DATE NOT NULL,                 -- End of this chapter (e.g. 2026-08-31)
+    chapter_number  INTEGER NOT NULL,              -- Chapter 1, 2, etc.
+    title           TEXT NOT NULL,                 -- e.g. "The Late-Night Shift & First Conflict"
+    story_text      TEXT NOT NULL,                 -- AI-narrated story of this period
+    mood_score      INTEGER NOT NULL,              -- 0 (Hostile) to 100 (Deep Connection)
+    key_events      TEXT NOT NULL,                 -- JSON array of key events: ["Met at cafe", "Apologized on Friday"]
+    created_at      DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY(contact_id) REFERENCES contacts(id) ON DELETE CASCADE
+);
+CREATE INDEX IF NOT EXISTS idx_diary_contact ON relationship_diary(contact_id, period_start DESC);
+
+-- 10. The Keep (Preferences, Gift Ideas & Watchlist Vault)
+CREATE TABLE IF NOT EXISTS preferences_vault (
+    id              INTEGER PRIMARY KEY AUTOINCREMENT,
+    contact_id      TEXT NOT NULL,
+    category        TEXT NOT NULL,                 -- 'gift' | 'movie' | 'food' | 'place' | 'dislike'
+    item_name       TEXT NOT NULL,                 -- e.g. "Lilies", "Inception", "Silver necklace"
+    context_quote   TEXT,                          -- Exact message: "Omg I love lilies so much"
+    time_stamp      DATETIME,                      -- When it was mentioned
+    status          TEXT DEFAULT 'saved',          -- 'saved' | 'completed' | 'bought' | 'watched'
+    created_at      DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY(contact_id) REFERENCES contacts(id) ON DELETE CASCADE
+);
+CREATE INDEX IF NOT EXISTS idx_pref_contact_cat ON preferences_vault(contact_id, category);
