@@ -9,7 +9,7 @@
 ## 🔥 Active Sprint Tasks
 
 ### 📍 Milestone 0: Workspace Scaffolding (Day 0)
-- [ ] `[P0]` **Create `backend/` subdirectories:**
+- [x] `[P0]` **Create `backend/` subdirectories:**
   - `backend/database/`
   - `backend/ingestion/`
   - `backend/analytics/`
@@ -17,27 +17,28 @@
   - `backend/coach/`
   - `backend/ghost/`
   - `backend/api/`
-- [ ] `[P0]` **Create `backend/requirements.txt`:**
-  - Add `fastapi>=0.115.0`, `uvicorn[standard]>=0.32.0`, `pydantic>=2.9.0`, `openai>=1.50.0`, `python-dotenv>=1.0.0`, `python-multipart>=0.0.12`.
-- [ ] `[P0]` **Verify `.env` configuration:**
-  - Ensure `OPENAI_API_KEY` is present and non-empty.
+- [x] `[P0]` **Create `backend/requirements.txt`:**
+  - Added `fastapi>=0.115.0`, `uvicorn[standard]>=0.32.0`, `pydantic>=2.9.0`, `openai>=1.50.0`, `python-dotenv>=1.0.0`, `python-multipart>=0.0.12`.
+- [x] `[P0]` **Verify dependencies installed in `.venv`:**
+  - FastAPI, uvicorn, openai, and python-multipart installed and verified.
 
 ---
 
 ### 📍 Milestone 1: Database Foundation & Schema 2.0 (Day 1)
-- [ ] `[P0]` **Draft `backend/database/schema.sql`:**
-  - Table 1: `messages` (id, contact_name, time_stamp, sender, content, media_type, is_deleted, is_question).
-  - Table 2: `chronemics_stats` (contact_name, total_messages, user_initiation_pct, contact_initiation_pct, user_median_delay_m, contact_median_delay_m, user_double_texts, contact_double_texts, late_night_pct, longest_gap_hours).
-  - Table 3: `relationship_profiles` (contact_name, status_label, delulu_score, power_ratio_user, power_ratio_contact, user_attachment_style, contact_attachment_style, chemistry_score, survival_probability, overall_diagnosis).
-  - Table 4: `report_acts` (id, contact_name, act_number, act_name, payload_json, generated_at).
-  - Table 5: `evidence_locker` (id, contact_name, flag_type, severity, category, quote, time_stamp, ai_commentary).
-  - Table 6: `greatest_hits` (id, contact_name, category, quote, sender, time_stamp, why_legendary).
-  - Table 7: `coaching_sessions` & `coaching_messages`.
-- [ ] `[P0]` **Build `backend/database/db.py`:**
-  - Function `get_db_connection(db_path)` enabling `PRAGMA journal_mode=WAL;` and `sqlite3.Row` dictionary mapping.
-  - Function `init_db(db_path, schema_path)` to automatically run `schema.sql`.
-- [ ] `[P1]` **Write Sanity Verification Script (`backend/database/test_db.py`):**
-  - Verify that running `init_db()` creates all 7 tables with zero errors.
+- [x] `[P0]` **Draft `backend/database/schema.sql` (Dynamic Contact Aliasing):**
+  - Table 1: `contacts` (raw_name, display_name alias, user_name).
+  - Table 2: `messages` (contact_id, time_stamp, sender role, raw_sender, content).
+  - Table 3: `chronemics_stats` (0-LLM initiation ratio, median delay, double-texts).
+  - Table 4: `relationship_profiles` (delulu_score, power_ratio, attachment_styles).
+  - Table 5: `report_acts` (act_number, act_name, payload_json).
+  - Table 6: `evidence_locker` (quoted receipts, severity 1-5, commentary).
+  - Table 7: `greatest_hits` (cringe, comedy, delusional quotes).
+  - Table 8: `coaching_sessions` & `coaching_messages`.
+- [x] `[P0]` **Build `backend/database/db.py`:**
+  - `get_db_connection()` with WAL mode, foreign keys, and `sqlite3.Row` mapping.
+  - `init_db()` to automatically execute DDL idempotently.
+- [x] `[P1]` **Verify Database Creation:**
+  - Schema executed on `backend/assify.db`; all 8 tables verified.
 
 ---
 
