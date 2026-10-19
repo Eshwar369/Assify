@@ -61,19 +61,29 @@
   - Stage 2: Context stitching with preceding message turns (pronoun & link resolution).
   - Stage 3: LLM Entity Extraction & Banter/Sarcasm Filter (`gpt-4o-mini`).
   - Stage 4: AI Date Idea & Gift Oracle synthesis.
-- [ ] `[P1]` Integrate into `ingest_service.py` and run live test on 14,032 messages in `data/assify_data.txt`.
-
+- [x] `[P1]` Integrate into `ingest_service.py` and run live test on 14,032 messages in `data/assify_data.txt`.
 
 ---
 
-## 🎯 Active Sprint: Sprint 3 — The 17 Theatrical Acts & Profiler (Days 4–6)
-- [ ] `[P0]` Pydantic models for all 17 Acts (`backend/profiler/acts_schemas.py`).
-- [ ] `[P0]` The 4-Pass Synthesizer Engine with `gpt-4o-mini` (`backend/profiler/synthesizer.py`):
+## 🎭 Sprint 3 — The 17 Theatrical Acts & Profiler (Days 4–6)
+- [x] `[P0]` Pydantic models for all 17 Acts (`backend/profiler/acts_schemas.py`).
+- [x] `[P0]` The 4-Pass Synthesizer Engine with `gpt-4o-mini` (`backend/profiler/synthesizer.py`):
   - Pass 1: Global Relationship Diagnosis, Delulu Score, and Power Dynamic.
   - Pass 2: Acts 1–6 (The Surface & Rhythm: Vibe, Delay, Double Texts, Initiation).
   - Pass 3: Acts 7–12 (The Psychology & Power: Attachment styles, red/green flags, receipts).
   - Pass 4: Acts 13–17 (The Forecast & Final Verdict: Greatest Hits, Survival Odds, Roast).
-- [ ] `[P1]` Populate `relationship_profiles`, `report_acts`, `evidence_locker`, and `greatest_hits` in SQLite.
+- [x] `[P1]` Populate `relationship_profiles`, `report_acts` (all 17 acts), `evidence_locker`, and `greatest_hits` in SQLite.
+- [x] `[P1]` End-to-end live verification (`backend/profiler/run_profiler.py`) on 14,032 messages in 45s.
+
+---
+
+## ⚡ Active Sprint: Sprint 4 — FastAPI Endpoints & Contract Serving (Days 7–8)
+- [ ] `[P0]` FastAPI application entry point (`backend/main.py`) with CORS for React Native Expo.
+- [ ] `[P0]` Report endpoints (`GET /api/report/{contact_id}`, `GET /api/report/{contact_id}/acts`).
+- [ ] `[P0]` Ingestion endpoint (`POST /api/ingest/upload`).
+- [ ] `[P1]` The Keep endpoints (`GET /api/keep/{contact_id}`, `POST /api/keep/{contact_id}/item`).
+- [ ] `[P1]` Evidence Locker endpoints (`GET /api/evidence/{contact_id}`).
+
 
 
 

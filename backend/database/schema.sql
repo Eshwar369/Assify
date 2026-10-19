@@ -85,6 +85,7 @@ CREATE TABLE IF NOT EXISTS evidence_locker (
     severity        INTEGER DEFAULT 3,             -- 1 (mild) to 5 (severe)
     category        TEXT NOT NULL,                 -- 'Breadcrumbing', 'Ghosting', 'Gaslighting'
     quote           TEXT NOT NULL,                 -- Exact message string cited
+    sender          TEXT DEFAULT 'contact',        -- 'user' | 'contact'
     time_stamp      DATETIME,                      -- When it was sent
     ai_commentary   TEXT NOT NULL,                 -- Forensic breakdown
     FOREIGN KEY(contact_id) REFERENCES contacts(id) ON DELETE CASCADE
