@@ -3,4 +3,8 @@ data/
 *.db
 chromadb/
 __pycache__/
-.env
+.env
+*.apk
+*.xapk
+delulu/extracted/
+
