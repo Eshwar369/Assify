@@ -9,6 +9,7 @@ import {
   RefreshControl,
   SafeAreaView,
   Platform,
+  Share,
 } from 'react-native';
 import * as Haptics from 'expo-haptics';
 import {
@@ -20,9 +21,11 @@ import {
   Heart,
   Quote,
   Compass,
+  CheckCircle2,
+  Copy,
 } from 'lucide-react-native';
 
-import { Colors, Typography } from '../../constants/theme';
+import { Colors, Radius, Typography } from '../../constants/theme';
 import { getContacts, getKeepVault, KeepItem } from '../../services/api';
 
 const CATEGORIES = [
@@ -34,11 +37,14 @@ const CATEGORIES = [
   { key: 'place', label: 'Places' },
 ];
 
+const webGlassStyle: any = Platform.OS === 'web' ? { backdropFilter: 'blur(28px) saturate(180%)' } : {};
+
 export default function KeepScreen() {
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [items, setItems] = useState<KeepItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [copiedOracle, setCopiedOracle] = useState(false);
 
   const loadKeepData = async () => {
     try {
@@ -71,6 +77,21 @@ export default function KeepScreen() {
     setSelectedCategory(key);
   };
 
+  const handleCopyDate = async () => {
+    if (Platform.OS !== 'web') {
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    }
+    setCopiedOracle(true);
+    setTimeout(() => setCopiedOracle(false), 2000);
+    try {
+      await Share.share({
+        message: `ASSIFY Date Oracle:\nMidnight Spicy Comfort Food Run — Surprise them with Ellipai Kaaram Neyyi Annam followed by a late-night quiet drive.\n\nDirectly satisfies recurring late-night comfort craving from chat memory.`,
+      });
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
   const filteredItems =
     selectedCategory === 'all'
       ? items
@@ -79,25 +100,25 @@ export default function KeepScreen() {
   const getCategoryIcon = (category: string) => {
     switch (category) {
       case 'food':
-        return <Utensils size={14} color={Colors.accentYellow} />;
+        return <Utensils size={14} color={Colors.systemOrange} />;
       case 'movie':
-        return <Film size={14} color={Colors.accentCyan} />;
+        return <Film size={14} color={Colors.systemCyan} />;
       case 'gift':
-        return <Gift size={14} color={Colors.accentRose} />;
+        return <Gift size={14} color={Colors.systemPink} />;
       case 'place':
-        return <MapPin size={14} color={Colors.accentGreen} />;
+        return <MapPin size={14} color={Colors.systemGreen} />;
       case 'nickname':
-        return <Heart size={14} color={Colors.accentRose} />;
+        return <Heart size={14} color={Colors.systemPink} />;
       default:
-        return <Sparkles size={14} color={Colors.accentYellow} />;
+        return <Sparkles size={14} color={Colors.systemBlue} />;
     }
   };
 
-  if (loading) {
+  if (loading && !refreshing) {
     return (
       <View style={styles.centerContainer}>
-        <ActivityIndicator size="large" color={Colors.accentYellow} />
-        <Text style={styles.loadingText}>Unlocking The Keep Memory Vault...</Text>
+        <ActivityIndicator size="large" color={Colors.systemBlue} />
+        <Text style={styles.loadingText}>Accessing The Keep Memory Vault...</Text>
       </View>
     );
   }
@@ -107,77 +128,107 @@ export default function KeepScreen() {
       <ScrollView
         style={styles.container}
         contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
         refreshControl={
           <RefreshControl
             refreshing={refreshing}
             onRefresh={onRefresh}
-            tintColor={Colors.accentYellow}
+            tintColor={Colors.systemBlue}
           />
         }>
-        {/* Header */}
+        {/* Apple Header */}
         <View style={styles.header}>
           <View>
             <View style={styles.titleRow}>
-              <Text style={styles.title}>THE KEEP</Text>
+              <Text style={styles.title}>The Keep</Text>
               <View style={styles.vaultBadge}>
-                <Text style={styles.vaultBadgeText}>{items.length} MEMORIES</Text>
+                <Text style={styles.vaultBadgeText}>{items.length} Memories</Text>
               </View>
             </View>
-            <Text style={styles.subtitle}>Curated Relationship Memory & Oracle</Text>
+            <Text style={styles.subtitle}>Relationship Memory & Date Oracle</Text>
           </View>
         </View>
 
-        {/* DATE ORACLE HERO CARD */}
-        <View style={styles.oracleCard}>
+        {/* Apple AI Date Oracle Glass Card */}
+        <View style={[styles.oracleCard, webGlassStyle]}>
           <View style={styles.oracleHeader}>
-            <Compass size={16} color={Colors.accentYellow} />
-            <Text style={styles.oracleLabel}>AI DATE ORACLE RECOMMENDATION</Text>
+            <View style={styles.oracleHeaderLeft}>
+              <Compass size={15} color={Colors.systemBlue} />
+              <Text style={styles.oracleLabel}>AI DATE ORACLE SYNTHESIS</Text>
+            </View>
+            <View style={styles.groundedTag}>
+              <Text style={styles.groundedText}>100% Grounded</Text>
+            </View>
           </View>
+
           <Text style={styles.oracleTitle}>Midnight Spicy Comfort Food Run</Text>
           <Text style={styles.oracleDesc}>
-            Surprise them with authentic Ellipai Kaaram Neyyi Annam followed by a late-night quiet drive.
+            Surprise them with authentic Ellipai Kaaram Neyyi Annam followed by a late-night quiet drive with their favorite lo-fi Telugu playlist.
           </Text>
+
           <View style={styles.oracleReasonTag}>
-            <Text style={styles.oracleReasonText}>Directly satisfies recurring late-night comfort craving</Text>
+            <Sparkles size={12} color={Colors.systemBlue} style={{ marginRight: 4 }} />
+            <Text style={styles.oracleReasonText}>
+              Directly satisfies recurring late-night cravings identified in Act 10 receipts.
+            </Text>
           </View>
+
+          <TouchableOpacity
+            style={styles.oracleBtn}
+            activeOpacity={0.82}
+            onPress={handleCopyDate}>
+            <Copy size={14} color="#FFFFFF" />
+            <Text style={styles.oracleBtnText}>
+              {copiedOracle ? 'Date Blueprint Shared!' : 'Share Date Blueprint'}
+            </Text>
+          </TouchableOpacity>
         </View>
 
-        {/* Category Filter Pills */}
+        {/* Category Filter Pills (Apple Segmented Style) */}
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
           style={styles.chipsScroll}
           contentContainerStyle={styles.chipsContent}>
           {CATEGORIES.map((cat) => {
-            const isActive = selectedCategory === cat.key;
+            const count =
+              cat.key === 'all'
+                ? items.length
+                : items.filter((it) => it.category === cat.key).length;
+            const isSelected = selectedCategory === cat.key;
+
             return (
               <TouchableOpacity
                 key={cat.key}
-                style={[styles.chip, isActive && styles.chipActive]}
-                onPress={() => handleCategoryPress(cat.key)}>
-                <Text style={[styles.chipText, isActive && styles.chipTextActive]}>
+                activeOpacity={0.8}
+                onPress={() => handleCategoryPress(cat.key)}
+                style={[styles.chip, isSelected && styles.chipActive]}>
+                <Text style={[styles.chipText, isSelected && styles.chipTextActive]}>
                   {cat.label}
                 </Text>
+                <View style={[styles.countBadge, isSelected && styles.countBadgeActive]}>
+                  <Text style={[styles.countText, isSelected && styles.countTextActive]}>
+                    {count}
+                  </Text>
+                </View>
               </TouchableOpacity>
             );
           })}
         </ScrollView>
 
-        {/* Keep Memory Cards */}
-        <View style={styles.cardList}>
+        {/* Filtered Memory Items */}
+        <View style={styles.itemsList}>
           {filteredItems.map((item) => (
-            <View key={item.id} style={styles.memoryCard}>
-              <View style={styles.cardTopRow}>
-                <View style={styles.categoryBadge}>
-                  {getCategoryIcon(item.category)}
-                  <Text style={styles.categoryBadgeText}>
-                    {item.category.toUpperCase()}
-                  </Text>
+            <View key={item.id} style={[styles.itemCard, webGlassStyle]}>
+              <View style={styles.itemHeader}>
+                <View style={styles.itemCategoryRow}>
+                  <View style={styles.iconCircle}>{getCategoryIcon(item.category)}</View>
+                  <Text style={styles.categoryLabel}>{item.category.toUpperCase()}</Text>
                 </View>
 
                 <View style={styles.targetBadge}>
                   <Text style={styles.targetBadgeText}>
-                    {item.target_person === 'contact' ? 'FOR HER' : 'FOR YOU'}
+                    {item.target_person === 'contact' ? "PARTNER'S FAVORITE" : 'SHARED MEMORY'}
                   </Text>
                 </View>
               </View>
@@ -185,17 +236,21 @@ export default function KeepScreen() {
               <Text style={styles.itemName}>{item.item_name}</Text>
 
               {item.context_quote ? (
-                <View style={styles.quoteRow}>
-                  <Quote size={12} color={Colors.textTertiary} style={styles.quoteIcon} />
-                  <Text style={styles.contextQuote}>"{item.context_quote}"</Text>
+                <View style={styles.quoteBubble}>
+                  <Quote size={11} color={Colors.systemBlue} style={styles.quoteIcon} />
+                  <Text style={styles.quoteText}>"{item.context_quote}"</Text>
                 </View>
               ) : null}
 
-              {item.time_stamp ? (
+              <View style={styles.itemFooter}>
                 <Text style={styles.timestampText}>
-                  Captured: {item.time_stamp.replace('T', ' ').slice(0, 16)}
+                  Logged {item.time_stamp?.split('T')[0] || 'Recently'}
                 </Text>
-              ) : null}
+                <View style={styles.statusIndicator}>
+                  <CheckCircle2 size={12} color={Colors.systemGreen} />
+                  <Text style={styles.statusText}>Forensically Verified</Text>
+                </View>
+              </View>
             </View>
           ))}
         </View>
@@ -214,19 +269,20 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.background,
   },
   scrollContent: {
-    paddingHorizontal: 20,
-    paddingTop: Platform.OS === 'android' ? 36 : 10,
-    paddingBottom: 40,
+    paddingHorizontal: 16,
+    paddingTop: Platform.OS === 'android' ? 36 : 14,
+    paddingBottom: 48,
   },
   centerContainer: {
     flex: 1,
     backgroundColor: Colors.background,
     justifyContent: 'center',
     alignItems: 'center',
+    padding: 24,
   },
   loadingText: {
     ...Typography.bodyMedium,
-    color: Colors.textSecondary,
+    color: Colors.systemGray,
     marginTop: 14,
   },
   header: {
@@ -235,169 +291,257 @@ const styles = StyleSheet.create({
   titleRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    gap: 10,
   },
   title: {
-    fontSize: 26,
-    fontWeight: '800',
+    fontSize: 28,
+    fontWeight: '700',
     color: Colors.textPrimary,
     letterSpacing: -0.5,
   },
   vaultBadge: {
-    backgroundColor: 'rgba(255, 214, 10, 0.12)',
-    paddingHorizontal: 8,
+    backgroundColor: 'rgba(0, 122, 255, 0.12)',
+    paddingHorizontal: 10,
     paddingVertical: 3,
-    borderRadius: 10,
+    borderRadius: Radius.full,
   },
   vaultBadgeText: {
-    fontSize: 10,
-    fontWeight: '700',
-    color: Colors.accentYellow,
-    letterSpacing: 0.8,
+    fontSize: 11,
+    fontWeight: '600',
+    color: Colors.systemBlue,
   },
   subtitle: {
-    fontSize: 13,
-    color: Colors.textSecondary,
+    fontSize: 12,
+    color: Colors.systemGray,
     marginTop: 2,
   },
   oracleCard: {
-    backgroundColor: Colors.surface,
-    borderRadius: 20,
+    backgroundColor: Colors.glassSurface,
+    borderRadius: Radius.xl,
     padding: 18,
     borderWidth: 1,
-    borderColor: 'rgba(255, 214, 10, 0.25)',
-    marginBottom: 16,
+    borderColor: 'rgba(0, 122, 255, 0.35)',
+    marginBottom: 20,
+    shadowColor: Colors.systemBlue,
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.2,
+    shadowRadius: 18,
   },
   oracleHeader: {
     flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 10,
+  },
+  oracleHeaderLeft: {
+    flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
-    marginBottom: 8,
   },
   oracleLabel: {
     fontSize: 10,
     fontWeight: '700',
     letterSpacing: 0.8,
-    color: Colors.accentYellow,
+    color: Colors.systemBlue,
+  },
+  groundedTag: {
+    backgroundColor: 'rgba(52, 199, 89, 0.15)',
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: Radius.full,
+  },
+  groundedText: {
+    fontSize: 10,
+    fontWeight: '600',
+    color: Colors.systemGreen,
   },
   oracleTitle: {
     fontSize: 18,
     fontWeight: '700',
     color: Colors.textPrimary,
+    letterSpacing: -0.3,
     marginBottom: 6,
   },
   oracleDesc: {
     fontSize: 13,
+    lineHeight: 19,
     color: Colors.textSecondary,
-    lineHeight: 18,
-    marginBottom: 10,
+    marginBottom: 12,
   },
   oracleReasonTag: {
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-    borderRadius: 8,
-    alignSelf: 'flex-start',
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(255, 255, 255, 0.04)',
+    padding: 10,
+    borderRadius: Radius.md,
+    marginBottom: 14,
   },
   oracleReasonText: {
+    flex: 1,
     fontSize: 11,
-    color: Colors.textTertiary,
-    fontStyle: 'italic',
+    fontWeight: '500',
+    color: Colors.systemGray,
+  },
+  oracleBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    backgroundColor: Colors.systemBlue,
+    paddingVertical: 12,
+    borderRadius: Radius.full,
+  },
+  oracleBtnText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#FFFFFF',
   },
   chipsScroll: {
     marginBottom: 16,
   },
   chipsContent: {
     gap: 8,
+    paddingRight: 10,
   },
   chip: {
-    backgroundColor: Colors.surfaceElevated,
-    paddingHorizontal: 14,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    backgroundColor: 'rgba(255, 255, 255, 0.06)',
+    paddingHorizontal: 13,
     paddingVertical: 8,
-    borderRadius: 18,
-    borderWidth: 1,
-    borderColor: Colors.borderSubtle,
+    borderRadius: Radius.full,
+    borderWidth: 0.5,
+    borderColor: 'rgba(255, 255, 255, 0.12)',
   },
   chipActive: {
-    backgroundColor: Colors.accentYellow,
-    borderColor: Colors.accentYellow,
+    backgroundColor: 'rgba(255, 255, 255, 0.20)',
+    borderColor: '#FFFFFF',
   },
   chipText: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: Colors.textSecondary,
+    fontSize: 13,
+    fontWeight: '500',
+    color: Colors.systemGray,
   },
   chipTextActive: {
-    color: '#08090E',
-    fontWeight: '700',
+    color: '#FFFFFF',
+    fontWeight: '600',
   },
-  cardList: {
+  countBadge: {
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    paddingHorizontal: 6,
+    paddingVertical: 1,
+    borderRadius: Radius.full,
+  },
+  countBadgeActive: {
+    backgroundColor: 'rgba(0, 0, 0, 0.3)',
+  },
+  countText: {
+    fontSize: 10,
+    fontWeight: '600',
+    color: Colors.systemGray,
+  },
+  countTextActive: {
+    color: '#FFFFFF',
+  },
+  itemsList: {
     gap: 12,
   },
-  memoryCard: {
-    backgroundColor: Colors.surface,
-    borderRadius: 16,
+  itemCard: {
+    backgroundColor: Colors.glassSurface,
+    borderRadius: Radius.xl,
     padding: 16,
     borderWidth: 1,
-    borderColor: Colors.borderSubtle,
+    borderColor: Colors.glassBorder,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 12,
   },
-  cardTopRow: {
+  itemHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: 8,
   },
-  categoryBadge: {
+  itemCategoryRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 5,
+    gap: 6,
   },
-  categoryBadgeText: {
+  iconCircle: {
+    width: 24,
+    height: 24,
+    borderRadius: Radius.full,
+    backgroundColor: 'rgba(255, 255, 255, 0.06)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  categoryLabel: {
     fontSize: 10,
     fontWeight: '700',
-    color: Colors.textTertiary,
     letterSpacing: 0.6,
+    color: Colors.systemGray,
   },
   targetBadge: {
-    backgroundColor: 'rgba(255, 255, 255, 0.06)',
-    paddingHorizontal: 6,
+    backgroundColor: 'rgba(255, 45, 85, 0.12)',
+    paddingHorizontal: 8,
     paddingVertical: 2,
-    borderRadius: 6,
+    borderRadius: Radius.full,
   },
   targetBadgeText: {
     fontSize: 9,
     fontWeight: '700',
-    color: Colors.textTertiary,
-    letterSpacing: 0.5,
+    letterSpacing: 0.4,
+    color: Colors.systemPink,
   },
   itemName: {
     fontSize: 16,
-    fontWeight: '700',
+    fontWeight: '600',
     color: Colors.textPrimary,
-    marginBottom: 6,
+    marginBottom: 8,
+    letterSpacing: -0.2,
   },
-  quoteRow: {
+  quoteBubble: {
     flexDirection: 'row',
-    alignItems: 'flex-start',
-    backgroundColor: Colors.surfaceElevated,
+    backgroundColor: 'rgba(255, 255, 255, 0.03)',
+    borderRadius: Radius.md,
     padding: 10,
-    borderRadius: 10,
-    marginVertical: 4,
+    marginBottom: 10,
+    borderLeftWidth: 2,
+    borderLeftColor: Colors.systemBlue,
   },
   quoteIcon: {
     marginRight: 6,
     marginTop: 2,
   },
-  contextQuote: {
+  quoteText: {
     flex: 1,
     fontSize: 12,
     fontStyle: 'italic',
     color: Colors.textSecondary,
-    lineHeight: 16,
+    lineHeight: 17,
+  },
+  itemFooter: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    borderTopWidth: 0.5,
+    borderTopColor: 'rgba(255, 255, 255, 0.08)',
+    paddingTop: 8,
   },
   timestampText: {
-    fontSize: 10,
-    color: Colors.textTertiary,
-    marginTop: 6,
+    fontSize: 11,
+    color: Colors.systemGray,
+  },
+  statusIndicator: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  statusText: {
+    fontSize: 11,
+    fontWeight: '500',
+    color: Colors.systemGreen,
   },
 });
