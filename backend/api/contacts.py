@@ -6,6 +6,7 @@ router = APIRouter(prefix="/contacts", tags=["Contacts"])
 
 
 @router.get("", response_model=List[Dict[str, Any]])
+@router.get("/", response_model=List[Dict[str, Any]])
 def list_contacts():
     """
     Returns all analyzed contacts with their Delulu Score, Status Label,

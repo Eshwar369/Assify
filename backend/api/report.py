@@ -85,3 +85,4 @@ def get_single_act(contact_id: str, act_number: int):
         }
     finally:
         conn.close()
+

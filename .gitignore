@@ -7,3 +7,5 @@ __pycache__/
 *.apk
 *.xapk
 delulu/extracted/
+output/
+.agent/
