@@ -98,8 +98,26 @@ const DEFAULT_VAULT_ITEMS: KeepItem[] = [
   },
 ];
 
+function formatReceiptTimestamp(raw?: string): string {
+  if (!raw) return '';
+  try {
+    const d = new Date(raw);
+    if (isNaN(d.getTime())) return raw;
+    const month = d.toLocaleDateString('en-US', { month: 'short' });
+    const day = d.getDate();
+    let hours = d.getHours();
+    const minutes = d.getMinutes().toString().padStart(2, '0');
+    const ampm = hours >= 12 ? 'PM' : 'AM';
+    hours = hours % 12 || 12;
+    return `${month} ${day}, ${hours}:${minutes} ${ampm}`;
+  } catch {
+    return raw;
+  }
+}
+
 export default function KeepScreen() {
   const [selectedCategory, setSelectedCategory] = useState('all');
+  const [partnerName, setPartnerName] = useState('Sarah');
   const [items, setItems] = useState<KeepItem[]>(DEFAULT_VAULT_ITEMS);
   const [completedIds, setCompletedIds] = useState<Set<number>>(new Set());
   const [loading, setLoading] = useState(true);
@@ -109,6 +127,7 @@ export default function KeepScreen() {
     try {
       const contacts = await getContacts();
       if (contacts.length > 0) {
+        setPartnerName(contacts[0].display_name);
         const vault = await getKeepVault(contacts[0].id);
         if (vault && vault.length > 0) {
           setItems(vault);
@@ -196,7 +215,7 @@ export default function KeepScreen() {
         <AppHeader
           title="The Keep"
           subtitle="Partner Vault & Receipts"
-          activePartner="Sarah"
+          activePartner={partnerName}
         />
       }
       refreshControl={
@@ -221,7 +240,7 @@ export default function KeepScreen() {
 
         <Text style={styles.heroTitle}>Partner Preferences Ledger</Text>
         <Text style={styles.heroSub}>
-          Everything Sarah casually mentioned in conversation: wishlist items, date spots, food cravings, and red lines mined with verified chat receipts.
+          Everything {partnerName} casually mentioned in conversation: wishlist items, date spots, food cravings, and red lines mined with verified chat receipts.
         </Text>
       </View>
 
@@ -266,11 +285,14 @@ export default function KeepScreen() {
                     activeOpacity={0.7}
                     onPress={() => handleToggleComplete(item.id)}
                     style={styles.checkboxTouch}
+                    accessibilityRole="checkbox"
+                    accessibilityState={{ checked: isCompleted }}
+                    accessibilityLabel={`Mark ${item.item_name} as ${isCompleted ? 'uncompleted' : 'completed'}`}
                   >
                     {isCompleted ? (
                       <CheckCircle2 size={22} color={Colors.systemGreen} />
                     ) : (
-                      <Circle size={22} color={Colors.borderCard} />
+                      <Circle size={22} color="#C7C7CC" strokeWidth={1.75} />
                     )}
                   </TouchableOpacity>
 
@@ -295,7 +317,7 @@ export default function KeepScreen() {
                 {/* Unified Borderless ReceiptQuote */}
                 <ReceiptQuote
                   quote={item.context_quote}
-                  timestamp={item.time_stamp}
+                  timestamp={formatReceiptTimestamp(item.time_stamp)}
                   accentVariant={isCompleted ? 'neutral' : 'gold'}
                 />
               </AppleElevatedCard>

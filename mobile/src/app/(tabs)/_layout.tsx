@@ -47,7 +47,7 @@ function TabsLayoutInner() {
           backgroundColor: 'transparent',
           borderTopWidth: 0,
           elevation: 0,
-          height: Platform.OS === 'ios' ? 84 : Platform.OS === 'web' ? 64 : 60,
+          height: Platform.OS === 'ios' ? 84 : Platform.OS === 'web' ? 68 : 66,
           paddingTop: 6,
           paddingBottom: Platform.OS === 'ios' ? 24 : 8,
           transform: [{ translateY }] as any,
@@ -58,20 +58,26 @@ function TabsLayoutInner() {
                 maxWidth: 420,
                 marginHorizontal: 'auto',
                 bottom: 16,
-                borderRadius: 32,
+                borderRadius: 34,
                 overflow: 'hidden',
                 borderWidth: 1,
                 borderColor: Colors.borderCard,
-                boxShadow: '0 12px 36px rgba(0, 0, 0, 0.08)',
+                boxShadow: '0 8px 32px rgba(0, 0, 0, 0.08)',
                 transition: 'transform 250ms cubic-bezier(0.16, 1, 0.3, 1)',
               }
             : {}),
         },
+        tabBarItemStyle: {
+          paddingVertical: 2,
+          justifyContent: 'center',
+          alignItems: 'center',
+        },
         tabBarLabelStyle: {
-          fontSize: 11,
+          fontSize: 10,
           fontWeight: '600',
           letterSpacing: 0.1,
           marginTop: 2,
+          lineHeight: 12,
         },
       }}
     >
@@ -178,7 +184,7 @@ const styles = StyleSheet.create({
       : {}),
   },
   webDockBg: {
-    backgroundColor: 'rgba(255, 255, 255, 0.90)',
+    backgroundColor: 'rgba(255, 255, 255, 0.94)',
     backdropFilter: 'blur(30px) saturate(180%)',
     WebkitBackdropFilter: 'blur(30px) saturate(180%)',
   } as any,
@@ -196,9 +202,9 @@ const styles = StyleSheet.create({
   iconContainer: {
     alignItems: 'center',
     justifyContent: 'center',
-    width: 32,
-    height: 32,
-    borderRadius: 16,
+    width: 28,
+    height: 28,
+    borderRadius: 14,
   },
   activeIconContainer: {
     backgroundColor: Colors.secondaryBackground,

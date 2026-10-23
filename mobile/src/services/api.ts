@@ -9,6 +9,10 @@ export interface Contact {
   display_name: string;
   user_name: string;
   created_at: string;
+  total_messages?: number;
+  delulu_score?: number;
+  status_label?: string;
+  overall_diagnosis?: string;
 }
 
 export interface RelationshipProfile {

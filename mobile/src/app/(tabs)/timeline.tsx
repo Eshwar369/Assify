@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import Svg, { Path, Circle, Defs, LinearGradient, Stop } from 'react-native-svg';
 import {
@@ -19,6 +19,7 @@ import {
   ReceiptQuote,
   EditorialSection,
 } from '@/components/ui';
+import { getContacts } from '@/services/api';
 
 interface EpochItem {
   number: string;
@@ -88,6 +89,21 @@ const TIME_RANGES = [
 
 export default function TimelineScreen() {
   const [selectedRange, setSelectedRange] = useState('all');
+  const [partnerName, setPartnerName] = useState('Sarah');
+  const [totalMessages, setTotalMessages] = useState<number>(39154);
+
+  useEffect(() => {
+    getContacts()
+      .then((contacts) => {
+        if (contacts.length > 0) {
+          setPartnerName(contacts[0].display_name);
+          if (contacts[0].total_messages) {
+            setTotalMessages(contacts[0].total_messages);
+          }
+        }
+      })
+      .catch(() => {});
+  }, []);
 
   const timelineMetrics = [
     { label: 'TOTAL EPOCHS', value: '4 Phases' },
@@ -101,7 +117,7 @@ export default function TimelineScreen() {
         <AppHeader
           title="Fever Chart"
           subtitle="Longitudinal Trajectory"
-          activePartner="Sarah"
+          activePartner={partnerName}
         />
       }
     >
@@ -124,7 +140,7 @@ export default function TimelineScreen() {
 
         <Text style={styles.headline}>Accelerated Emotional Entanglement</Text>
         <Text style={styles.subheadline}>
-          Tracking over 14,821 messages indicates an exponential surge in late-night availability and reciprocal vulnerability.
+          Tracking over {totalMessages.toLocaleString()} messages indicates an exponential surge in late-night availability and reciprocal vulnerability.
         </Text>
 
         {/* Bezier Curve */}
@@ -293,8 +309,8 @@ const styles = StyleSheet.create({
   chartXRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    paddingHorizontal: 6,
-    marginTop: 4,
+    paddingHorizontal: 12,
+    marginTop: 6,
   },
   chartXText: {
     fontSize: 10,

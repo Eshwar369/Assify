@@ -147,7 +147,13 @@ export default function RadarScreen() {
   // Formatting chronemics
   const userInitPct = chron?.user_initiation_pct ?? 81;
   const contactInitPct = chron?.contact_initiation_pct ?? 19;
-  const contactDelay = chron?.contact_median_delay_m ? `${chron.contact_median_delay_m}m` : '4h 48m';
+  const rawDelay = chron?.contact_median_delay_m;
+  const contactDelay =
+    rawDelay !== undefined
+      ? rawDelay < 1
+        ? '< 1m'
+        : `${Math.round(rawDelay)}m`
+      : '4h 48m';
   const doubleTexts = chron?.user_double_texts ?? 24;
 
   const chronemicsMetrics = [
@@ -230,7 +236,7 @@ export default function RadarScreen() {
             <Text style={styles.statusPillText}>Live Chronemics Radar</Text>
           </View>
           <Text style={styles.serialText}>
-            ID: AF-{activeContact?.id?.slice(0, 4) || '8492'}
+            ID: AF-{activeContact?.id ? activeContact.id.replace(/[^a-zA-Z0-9]/g, '').slice(-4).toUpperCase() : '8492'}
           </Text>
         </View>
 
@@ -472,15 +478,20 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: Colors.accentGoldSoft,
-    paddingHorizontal: 12,
-    paddingVertical: 5,
+    paddingHorizontal: 14,
+    paddingVertical: 7,
     borderRadius: Radius.full,
-    marginTop: 8,
+    borderWidth: 1,
+    borderColor: 'rgba(191, 155, 40, 0.20)',
+    marginTop: 12,
+    maxWidth: '92%',
   },
   archetypeText: {
     fontSize: 12,
-    fontWeight: '700',
-    color: Colors.accentGold,
+    fontWeight: '600',
+    color: '#8A6E10',
+    textAlign: 'center',
+    flexShrink: 1,
   },
   shortcutsRow: {
     flexDirection: 'row',

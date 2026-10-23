@@ -37,12 +37,20 @@ export function StatStrip({ metrics, style, bordered = true }: StatStripProps) {
         const isLast = index === metrics.length - 1;
         const color = getAccentColor(item.accent);
 
+        const formattedValue =
+          typeof item.value === 'number' ? item.value.toLocaleString() : item.value;
+
         return (
           <React.Fragment key={item.label}>
-            <View style={styles.column}>
+            <View
+              style={styles.column}
+              accessible={true}
+              accessibilityRole="text"
+              accessibilityLabel={`${item.label}: ${formattedValue}${item.sub ? ', ' + item.sub : ''}`}
+            >
               <Text style={styles.label}>{item.label}</Text>
               <Text style={[styles.value, { color }]} numberOfLines={1}>
-                {item.value}
+                {formattedValue}
               </Text>
               {item.sub && (
                 <Text style={styles.sub} numberOfLines={1}>

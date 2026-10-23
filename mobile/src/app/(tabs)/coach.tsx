@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import {
   View,
   Text,
@@ -29,6 +29,7 @@ import {
   EditorialSection,
   AppleElevatedCard,
 } from '@/components/ui';
+import { getContacts } from '@/services/api';
 
 interface ChatMessage {
   id: string;
@@ -103,6 +104,7 @@ const COACH_MODES = [
 
 export default function CoachScreen() {
   const [activeTab, setActiveTab] = useState<'coach' | 'ghost'>('coach');
+  const [partnerName, setPartnerName] = useState('Sarah');
   const [messages, setMessages] = useState<ChatMessage[]>(INITIAL_MESSAGES);
   const [inputMessage, setInputMessage] = useState('');
   const [isTyping, setIsTyping] = useState(false);
@@ -113,6 +115,25 @@ export default function CoachScreen() {
   const [copiedId, setCopiedId] = useState<string | null>(null);
 
   const scrollViewRef = useRef<any>(null);
+
+  useEffect(() => {
+    getContacts()
+      .then((contacts) => {
+        if (contacts.length > 0) {
+          const name = contacts[0].display_name;
+          setPartnerName(name);
+          setMessages([
+            {
+              id: '1',
+              sender: 'coach',
+              text: `Doctor Delulu online. I have full memory of your ${contacts[0].total_messages ? contacts[0].total_messages.toLocaleString() : '39,154'} messages with ${name}, your 80% initiation ratio, and that 4-hour reply lag. What conversational crisis are we breaking down today?`,
+              timestamp: 'Just now',
+            },
+          ]);
+        }
+      })
+      .catch(() => {});
+  }, []);
 
   const handleSendCoach = () => {
     if (!inputMessage.trim()) return;
@@ -225,7 +246,7 @@ export default function CoachScreen() {
         <AppHeader
           title="Tactics"
           subtitle="Doctor Delulu & Ghost Writer"
-          activePartner="Sarah"
+          activePartner={partnerName}
         />
 
         <KeyboardAvoidingView
@@ -259,7 +280,7 @@ export default function CoachScreen() {
                   </View>
                   <Text style={styles.tensionTitle}>4-Hour Response Lag Detected</Text>
                   <Text style={styles.tensionSub}>
-                    Sarah's response latency increased by 180% since 10:00 PM. Frame vulnerability high.
+                    {partnerName}'s response latency increased by 180% since 10:00 PM. Frame vulnerability high.
                   </Text>
                 </View>
 
@@ -629,11 +650,11 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: Spacing.screenGutter,
-    paddingVertical: 12,
+    paddingVertical: 10,
     backgroundColor: Colors.background,
     borderTopWidth: StyleSheet.hairlineWidth,
     borderTopColor: Colors.borderHairline,
-    marginBottom: Platform.OS === 'web' ? 80 : 70,
+    marginBottom: Platform.OS === 'web' ? 96 : 84,
   },
   textInput: {
     flex: 1,
