@@ -9,7 +9,7 @@ import {
 } from 'react-native';
 import * as Haptics from 'expo-haptics';
 import { UploadCloud, CheckCircle2, ShieldCheck, Sparkles } from 'lucide-react-native';
-import { Colors, Radius, Typography } from '../constants/theme';
+import { Colors, Radius, Typography, Spacing } from '../constants/theme';
 
 interface WhatsAppDropzoneProps {
   onFileSelect?: (file: { name: string; content?: string }) => void;
@@ -17,8 +17,6 @@ interface WhatsAppDropzoneProps {
   onVibeModeChange: (mode: 'therapy' | 'unhinged') => void;
   isAnalyzing?: boolean;
 }
-
-const webGlassStyle: any = Platform.OS === 'web' ? { backdropFilter: 'blur(25px) saturate(180%)' } : {};
 
 export const WhatsAppDropzone: React.FC<WhatsAppDropzoneProps> = ({
   onFileSelect,
@@ -30,7 +28,11 @@ export const WhatsAppDropzone: React.FC<WhatsAppDropzoneProps> = ({
 
   const handleSelectFile = () => {
     if (Platform.OS !== 'web') {
-      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+      try {
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+      } catch {
+        // Haptics fallback
+      }
     }
     const mockFileName = '_chat_sleepless_zombiee.txt';
     setSelectedFileName(mockFileName);
@@ -41,13 +43,17 @@ export const WhatsAppDropzone: React.FC<WhatsAppDropzoneProps> = ({
 
   const handleVibeToggle = (mode: 'therapy' | 'unhinged') => {
     if (Platform.OS !== 'web') {
-      Haptics.selectionAsync();
+      try {
+        Haptics.selectionAsync();
+      } catch {
+        // Haptics fallback
+      }
     }
     onVibeModeChange(mode);
   };
 
   return (
-    <View style={[styles.card, webGlassStyle]}>
+    <View style={styles.card}>
       {/* Apple Native Segmented Control */}
       <View style={styles.segmentedWrapper}>
         <View style={styles.segmentedContainer}>
@@ -57,12 +63,14 @@ export const WhatsAppDropzone: React.FC<WhatsAppDropzoneProps> = ({
             style={[
               styles.segmentItem,
               vibeMode === 'therapy' && styles.segmentItemActive,
-            ]}>
+            ]}
+          >
             <Text
               style={[
                 styles.segmentText,
                 vibeMode === 'therapy' && styles.segmentTextActive,
-              ]}>
+              ]}
+            >
               Therapy Mode
             </Text>
           </TouchableOpacity>
@@ -73,19 +81,21 @@ export const WhatsAppDropzone: React.FC<WhatsAppDropzoneProps> = ({
             style={[
               styles.segmentItem,
               vibeMode === 'unhinged' && styles.segmentItemActive,
-            ]}>
+            ]}
+          >
             <Text
               style={[
                 styles.segmentText,
                 vibeMode === 'unhinged' && styles.segmentTextActive,
-              ]}>
-              Unhinged Mode
+              ]}
+            >
+              Unhinged Roast
             </Text>
           </TouchableOpacity>
         </View>
       </View>
 
-      {/* Apple Liquid Glass Dropzone Target */}
+      {/* Upload Zone */}
       <TouchableOpacity
         activeOpacity={0.85}
         onPress={handleSelectFile}
@@ -93,36 +103,41 @@ export const WhatsAppDropzone: React.FC<WhatsAppDropzoneProps> = ({
         style={[
           styles.dropzone,
           selectedFileName ? styles.dropzoneSelected : null,
-        ]}>
-        <View style={styles.iconCircle}>
-          {isAnalyzing ? (
-            <ActivityIndicator size="small" color={Colors.systemBlue} />
-          ) : selectedFileName ? (
-            <CheckCircle2 size={24} color={Colors.systemGreen} />
-          ) : (
-            <UploadCloud size={24} color={Colors.systemBlue} />
-          )}
-        </View>
-
-        <Text style={styles.dropzoneTitle}>
-          {selectedFileName ? selectedFileName : 'Import WhatsApp Conversation (.txt)'}
-        </Text>
-        <Text style={styles.dropzoneSubtitle}>
-          {selectedFileName
-            ? 'Conversation loaded • 39,154 verified messages ready'
-            : 'Tap to browse exported file or share directly from WhatsApp'}
-        </Text>
-
-        <View style={styles.badgeRow}>
-          <View style={styles.applePill}>
-            <ShieldCheck size={11} color={Colors.systemGreen} style={{ marginRight: 4 }} />
-            <Text style={styles.applePillText}>100% Local SQLite</Text>
+        ]}
+      >
+        {isAnalyzing ? (
+          <View style={styles.analyzingWrapper}>
+            <ActivityIndicator size="small" color={Colors.accentGold} />
+            <Text style={styles.analyzingText}>Scrubbing PII & crunching latencies...</Text>
           </View>
-          <View style={styles.applePill}>
-            <Sparkles size={11} color={Colors.systemBlue} style={{ marginRight: 4 }} />
-            <Text style={styles.applePillText}>Zero Cloud Storage</Text>
+        ) : selectedFileName ? (
+          <View style={styles.selectedWrapper}>
+            <CheckCircle2 size={32} color={Colors.systemGreen} />
+            <Text style={styles.selectedText}>{selectedFileName}</Text>
+            <Text style={styles.selectedSub}>Tap to replace transcript</Text>
           </View>
-        </View>
+        ) : (
+          <View style={styles.idleWrapper}>
+            <View style={styles.iconCircle}>
+              <UploadCloud size={24} color={Colors.textPrimary} />
+            </View>
+            <Text style={styles.dropzoneTitle}>Upload WhatsApp or iMessage Export</Text>
+            <Text style={styles.dropzoneSubtitle}>
+              Export without media • .txt or .zip format
+            </Text>
+
+            <View style={styles.badgeRow}>
+              <View style={styles.applePill}>
+                <ShieldCheck size={12} color={Colors.systemGreen} style={{ marginRight: 4 }} />
+                <Text style={styles.applePillText}>Zero-Trust PII Masking</Text>
+              </View>
+              <View style={styles.applePill}>
+                <Sparkles size={12} color={Colors.accentGold} style={{ marginRight: 4 }} />
+                <Text style={styles.applePillText}>17 Psychological Acts</Text>
+              </View>
+            </View>
+          </View>
+        )}
       </TouchableOpacity>
     </View>
   );
@@ -130,27 +145,36 @@ export const WhatsAppDropzone: React.FC<WhatsAppDropzoneProps> = ({
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: Colors.glassSurface,
-    borderRadius: Radius.xl,
-    padding: 16,
+    backgroundColor: Colors.backgroundElevated,
+    borderRadius: Radius.lg,
+    padding: 20,
     borderWidth: 1,
-    borderColor: Colors.glassBorder,
-    marginBottom: 20,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.25,
-    shadowRadius: 18,
+    borderColor: Colors.borderCard,
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.05,
+        shadowRadius: 16,
+      },
+      android: {
+        elevation: 2,
+      },
+      web: {
+        boxShadow: '0 4px 20px rgba(0, 0, 0, 0.05)',
+      } as any,
+    }),
   },
   segmentedWrapper: {
     marginBottom: 16,
   },
   segmentedContainer: {
     flexDirection: 'row',
-    backgroundColor: 'rgba(120, 120, 128, 0.20)',
+    backgroundColor: Colors.secondaryBackground,
     borderRadius: Radius.full,
     padding: 3,
-    borderWidth: 0.5,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
+    borderWidth: 1,
+    borderColor: Colors.borderHairline,
   },
   segmentItem: {
     flex: 1,
@@ -160,60 +184,94 @@ const styles = StyleSheet.create({
     borderRadius: Radius.full,
   },
   segmentItemActive: {
-    backgroundColor: 'rgba(255, 255, 255, 0.18)',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 4,
+    backgroundColor: '#FFFFFF',
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.08,
+        shadowRadius: 4,
+      },
+      web: {
+        boxShadow: '0 2px 6px rgba(0, 0, 0, 0.06)',
+      } as any,
+    }),
   },
   segmentText: {
     fontSize: 13,
     fontWeight: '500',
-    color: Colors.systemGray,
-    letterSpacing: -0.1,
+    color: Colors.textTertiary,
   },
   segmentTextActive: {
-    color: '#FFFFFF',
-    fontWeight: '600',
+    color: Colors.textPrimary,
+    fontWeight: '700',
   },
   dropzone: {
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.12)',
-    borderRadius: Radius.lg,
-    padding: 22,
+    borderWidth: 1.5,
+    borderStyle: 'dashed',
+    borderColor: Colors.borderCard,
+    borderRadius: Radius.md,
+    paddingVertical: 24,
+    paddingHorizontal: 16,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.03)',
+    backgroundColor: Colors.secondaryBackground,
   },
   dropzoneSelected: {
-    borderColor: 'rgba(52, 199, 89, 0.4)',
-    backgroundColor: 'rgba(52, 199, 89, 0.06)',
+    borderColor: Colors.systemGreen,
+    backgroundColor: 'rgba(52, 199, 89, 0.04)',
+    borderStyle: 'solid',
+  },
+  idleWrapper: {
+    alignItems: 'center',
+  },
+  analyzingWrapper: {
+    alignItems: 'center',
+    paddingVertical: 12,
+  },
+  analyzingText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: Colors.textSecondary,
+    marginTop: 10,
+  },
+  selectedWrapper: {
+    alignItems: 'center',
+  },
+  selectedText: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: Colors.textPrimary,
+    marginTop: 8,
+  },
+  selectedSub: {
+    fontSize: 12,
+    color: Colors.textTertiary,
+    marginTop: 2,
   },
   iconCircle: {
-    width: 48,
-    height: 48,
-    borderRadius: Radius.full,
-    backgroundColor: 'rgba(0, 122, 255, 0.12)',
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: Colors.background,
     borderWidth: 1,
-    borderColor: 'rgba(0, 122, 255, 0.25)',
+    borderColor: Colors.borderHairline,
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 12,
+    marginBottom: 10,
   },
   dropzoneTitle: {
     fontSize: 15,
-    fontWeight: '600',
+    fontWeight: '700',
     color: Colors.textPrimary,
     letterSpacing: -0.2,
     marginBottom: 4,
   },
   dropzoneSubtitle: {
     fontSize: 12,
-    fontWeight: '400',
-    color: Colors.systemGray,
+    color: Colors.textTertiary,
     textAlign: 'center',
     marginBottom: 14,
-    lineHeight: 17,
   },
   badgeRow: {
     flexDirection: 'row',
@@ -222,16 +280,16 @@ const styles = StyleSheet.create({
   applePill: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.06)',
-    borderWidth: 0.5,
-    borderColor: 'rgba(255, 255, 255, 0.12)',
+    backgroundColor: Colors.background,
+    borderWidth: 1,
+    borderColor: Colors.borderHairline,
     paddingHorizontal: 10,
     paddingVertical: 4,
     borderRadius: Radius.full,
   },
   applePillText: {
     fontSize: 11,
-    fontWeight: '500',
-    color: Colors.systemGray,
+    fontWeight: '600',
+    color: Colors.textSecondary,
   },
 });

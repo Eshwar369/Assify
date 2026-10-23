@@ -16,30 +16,31 @@ import * as Haptics from 'expo-haptics';
 import {
   Flame,
   Sparkles,
-  Zap,
-  Heart,
-  ShieldCheck,
   ChevronRight,
   TrendingUp,
   Brain,
+  Clock,
+  Layers,
   Check,
   X,
+  MessageCircle,
+  Shield,
+  Zap,
 } from 'lucide-react-native';
 
-import { Colors, Radius, Typography } from '../../constants/theme';
-import { DeluluMeter } from '../../components/DeluluMeter';
-import { PowerSlider } from '../../components/PowerSlider';
-import { WhatsAppDropzone } from '../../components/WhatsAppDropzone';
+import { Colors, Radius, Typography, Spacing } from '@/constants/theme';
+import { AppHeader } from '@/components/ui/AppHeader';
+import { AppleElevatedCard } from '@/components/ui/AppleElevatedCard';
+import { LightDeluluGauge } from '@/components/ui/LightDeluluGauge';
+import { WhatsAppDropzone } from '@/components/WhatsAppDropzone';
 import {
   getContacts,
   getReportDossier,
   Contact,
   ReportDossierResponse,
-} from '../../services/api';
+} from '@/services/api';
 
-const webGlassStyle: any = Platform.OS === 'web' ? { backdropFilter: 'blur(30px) saturate(180%)' } : {};
-
-export default function ProfilerScreen() {
+export default function RadarScreen() {
   const router = useRouter();
   const [contacts, setContacts] = useState<Contact[]>([]);
   const [activeContact, setActiveContact] = useState<Contact | null>(null);
@@ -60,7 +61,10 @@ export default function ProfilerScreen() {
       if (contactList.length > 0) {
         const selected = targetContactId
           ? contactList.find((c) => c.id === targetContactId) || contactList[0]
+          : activeContact
+          ? contactList.find((c) => c.id === activeContact.id) || contactList[0]
           : contactList[0];
+
         setActiveContact(selected);
         const report = await getReportDossier(selected.id);
         setDossier(report);
@@ -70,7 +74,6 @@ export default function ProfilerScreen() {
       setError(err?.message || 'Could not connect to ASSIFY backend');
     } finally {
       setLoading(false);
-      setRefreshing(false);
     }
   };
 
@@ -80,284 +83,337 @@ export default function ProfilerScreen() {
 
   const onRefresh = () => {
     setRefreshing(true);
-    loadData(activeContact?.id);
+    if (Platform.OS !== 'web') {
+      try {
+        Haptics.selectionAsync();
+      } catch {
+        // Haptics fallback
+      }
+    }
+    loadData(activeContact?.id).finally(() => setRefreshing(false));
   };
 
-  const handleLaunchActs = () => {
+  const handleSelectContact = (contact: Contact) => {
     if (Platform.OS !== 'web') {
-      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+      try {
+        Haptics.selectionAsync();
+      } catch {
+        // Haptics fallback
+      }
     }
-    if (activeContact) {
-      router.push({
-        pathname: '/acts-modal',
-        params: {
-          contactId: activeContact.id,
-          contactName: activeContact.display_name,
-        },
-      });
-    }
-  };
-
-  const handleSelectContact = (c: Contact) => {
-    if (Platform.OS !== 'web') {
-      Haptics.selectionAsync();
-    }
-    setActiveContact(c);
+    setActiveContact(contact);
     setShowContactPicker(false);
     setLoading(true);
-    getReportDossier(c.id).then((rep) => {
-      setDossier(rep);
-      setLoading(false);
-    });
+    loadData(contact.id);
   };
 
   const handleFileDrop = (file: { name: string }) => {
     setIsAnalyzing(true);
     if (Platform.OS !== 'web') {
-      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      try {
+        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      } catch {
+        // Haptics fallback
+      }
     }
     setTimeout(() => {
       setIsAnalyzing(false);
-      loadData();
+      loadData(activeContact?.id);
     }, 1200);
+  };
+
+  const handleVibeToggle = (mode: 'therapy' | 'unhinged') => {
+    if (Platform.OS !== 'web') {
+      try {
+        Haptics.selectionAsync();
+      } catch {
+        // Haptics fallback
+      }
+    }
+    setVibeMode(mode);
   };
 
   if (loading && !refreshing) {
     return (
       <View style={styles.centerContainer}>
-        <ActivityIndicator size="large" color={Colors.systemBlue} />
-        <Text style={styles.loadingText}>Synthesizing Relationship Intelligence...</Text>
+        <ActivityIndicator size="large" color={Colors.accentGold} />
+        <Text style={styles.loadingTitle}>Crunching Forensics</Text>
+        <Text style={styles.loadingSub}>Analyzing interaction patterns and delays</Text>
       </View>
     );
   }
 
   const profile = dossier?.profile;
   const chron = dossier?.chronemics;
-  const contactName = activeContact?.display_name || 'Contact';
+  const contactName = activeContact?.display_name || 'Sarah';
+  const score = profile?.delulu_score ?? 84;
+  const isSevere = score >= 70;
+
+  // Formatting chronemics
+  const userInitPct = chron?.user_initiation_pct ?? 81;
+  const contactInitPct = chron?.contact_initiation_pct ?? 19;
+  const userDelay = chron?.user_median_delay_m ? `${chron.user_median_delay_m}m` : '3m';
+  const contactDelay = chron?.contact_median_delay_m ? `${chron.contact_median_delay_m}m` : '4h 48m';
+  const doubleTexts = chron?.user_double_texts ?? 24;
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <ScrollView
-        style={styles.container}
-        contentContainerStyle={styles.scrollContent}
-        showsVerticalScrollIndicator={false}
-        refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={onRefresh}
-            tintColor={Colors.systemBlue}
-          />
-        }>
-        {/* Apple iOS App Header */}
-        <View style={styles.header}>
-          <View>
-            <Text style={styles.brandTitle}>ASSIFY</Text>
-            <Text style={styles.brandSubtitle}>Relationship Intelligence</Text>
-          </View>
-
-          {/* Apple Contact Capsule Pill */}
-          <TouchableOpacity
-            style={styles.contactPill}
-            activeOpacity={0.8}
-            onPress={() => setShowContactPicker(true)}>
-            <View style={styles.onlineDot} />
-            <Text style={styles.contactPillText} numberOfLines={1}>
-              {contactName}
-            </Text>
-            <ChevronRight size={13} color={Colors.systemGray} />
-          </TouchableOpacity>
-        </View>
-
-        {/* WhatsApp Import & Vibe Calibration Dropzone */}
-        <WhatsAppDropzone
-          vibeMode={vibeMode}
-          onVibeModeChange={setVibeMode}
-          onFileSelect={handleFileDrop}
-          isAnalyzing={isAnalyzing}
+      <View style={styles.desktopCanvas}>
+        {/* Apple Persistent App Header */}
+        <AppHeader
+          title="Radar"
+          subtitle="Relationship Forensics"
+          activePartner={contactName}
         />
 
-        {error ? (
-          <View style={styles.errorCard}>
-            <Text style={styles.errorTitle}>Offline Demo Mode</Text>
-            <Text style={styles.errorBody}>
-              Connected to local SQLite mirror with 39,154 verified messages.
-            </Text>
-            <TouchableOpacity style={styles.retryButton} onPress={() => loadData()}>
-              <Text style={styles.retryText}>Reconnect Engine</Text>
-            </TouchableOpacity>
-          </View>
-        ) : null}
-
-        {profile ? (
-          <>
-            {/* HERO CARD: Master Delulu & Power Dashboard */}
-            <View style={[styles.heroCard, webGlassStyle]}>
-              {/* Header Status Row */}
-              <View style={styles.heroHeaderRow}>
-                <View style={styles.statusBadge}>
-                  <Flame size={12} color={Colors.systemPink} />
-                  <Text style={styles.statusBadgeText}>ACTIVE RADAR</Text>
-                </View>
-
-                <View style={styles.vibeBadge}>
-                  <Brain size={12} color={Colors.systemBlue} />
-                  <Text style={styles.vibeBadgeText}>
-                    {vibeMode === 'unhinged' ? 'UNHINGED MODE' : 'THERAPY MODE'}
-                  </Text>
+        <ScrollView
+          style={styles.scrollView}
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={false}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={onRefresh}
+              tintColor={Colors.accentGold}
+            />
+          }
+        >
+          {/* ============================================================ */}
+          {/* THEATRICAL UNBOXING HERO LAUNCHER */}
+          {/* ============================================================ */}
+          <AppleElevatedCard
+            interactive
+            floating
+            accentVariant="rose"
+            onPress={() => router.push('/unboxing-preview')}
+            style={styles.unboxingBanner}
+          >
+            <View style={styles.unboxingBannerContent}>
+              <View style={styles.unboxingBadgeRow}>
+                <View style={styles.unboxingBadge}>
+                  <Sparkles size={11} color={Colors.accentRose} style={{ marginRight: 4 }} />
+                  <Text style={styles.unboxingBadgeText}>THEATRICAL EXPERIENCE</Text>
                 </View>
               </View>
 
-              {/* Dynamic Relationship Status Label */}
-              <Text style={styles.statusLabel}>{profile.status_label}</Text>
+              <Text style={styles.unboxingTitle}>Cinematic 5-Beat Unboxing</Text>
+              <Text style={styles.unboxingSubtitle}>
+                Paced reveals • Spring-loaded gauge • 9:16 Viral Story Receipt
+              </Text>
+            </View>
+            <View style={styles.chevronCircle}>
+              <ChevronRight size={18} color={Colors.textPrimary} />
+            </View>
+          </AppleElevatedCard>
 
-              {/* Apple Delulu Meter Dial */}
-              <View style={styles.meterWrapper}>
-                <DeluluMeter
-                  score={profile.delulu_score}
-                  size={210}
-                  strokeWidth={14}
-                  label="DELULU SCORE"
-                  circusLevel="Romantic Clownery"
-                  onPress={handleLaunchActs}
+          {/* ============================================================ */}
+          {/* HERO DELULU COMMAND CENTER */}
+          {/* ============================================================ */}
+          <AppleElevatedCard floating style={styles.heroGaugeCard}>
+            <View style={styles.cardHeaderRow}>
+              <View style={styles.statusPill}>
+                <View style={styles.pulseDot} />
+                <Text style={styles.statusPillText}>Live Chronemics Radar</Text>
+              </View>
+              <Text style={styles.serialText}>
+                ID: AF-{activeContact?.id?.slice(0, 4) || '8492'}
+              </Text>
+            </View>
+
+            {/* Centered Light Delulu Gauge */}
+            <View style={styles.gaugeContainer}>
+              <LightDeluluGauge
+                score={score}
+                size={230}
+                strokeWidth={14}
+                classification={isSevere ? 'Textbook Clownery' : 'Reciprocal Chemistry'}
+              />
+            </View>
+
+            {/* Verdict Diagnosis Blockquote */}
+            <View style={styles.verdictContainer}>
+              <View style={styles.archetypeBadge}>
+                <Sparkles size={12} color={Colors.accentGold} style={{ marginRight: 5 }} />
+                <Text style={styles.archetypeText}>
+                  {profile?.status_label || 'The Olympic Paragraph Writer'}
+                </Text>
+              </View>
+
+              <Text style={styles.verdictQuote}>
+                "{profile?.overall_diagnosis ||
+                  'You are romanticizing radio silence and investing emotional capital into an avoidant void.'}"
+              </Text>
+            </View>
+
+            {/* Power Balance Bar */}
+            <View style={styles.powerSection}>
+              <View style={styles.powerLabelRow}>
+                <Text style={styles.powerTitle}>Power Balance</Text>
+                <Text style={styles.powerStatus}>
+                  {userInitPct < 50 ? `${contactName} Controls Frame` : 'You Control Frame'}
+                </Text>
+              </View>
+
+              <View style={styles.powerTrack}>
+                <View
+                  style={[
+                    styles.powerFill,
+                    { width: `${Math.min(Math.max(userInitPct, 15), 85)}%` },
+                  ]}
                 />
               </View>
 
-              {/* Bidirectional Power Balance */}
-              <PowerSlider
-                userRatio={profile.power_ratio_user}
-                contactRatio={profile.power_ratio_contact}
-                contactName={contactName}
-                onPress={handleLaunchActs}
-              />
-
-              {/* Dynamic Archetype Matchup Cards */}
-              <View style={styles.archetypeGrid}>
-                <View style={styles.archetypeBox}>
-                  <Text style={styles.archetypeRole}>YOU</Text>
-                  <Text style={styles.archetypeName}>The Flirtatious Sparring Partner</Text>
-                  <Text style={styles.archetypeSub}>High banter stamina & emotional anchor</Text>
-                </View>
-
-                <View style={[styles.archetypeBox, styles.archetypeBoxPartner]}>
-                  <Text style={[styles.archetypeRole, { color: Colors.systemPink }]}>
-                    {contactName.toUpperCase()}
-                  </Text>
-                  <Text style={styles.archetypeName}>The Chaotic Firehose</Text>
-                  <Text style={styles.archetypeSub}>Rapid double-texting & playful avoidance</Text>
-                </View>
-              </View>
-
-              {/* Executive Grounded Diagnosis Quote */}
-              <View style={styles.diagnosisBox}>
-                <Text style={styles.diagnosisQuote}>"{profile.overall_diagnosis}"</Text>
-              </View>
-
-              {/* Apple Prominent Capsule Button */}
-              <TouchableOpacity
-                style={styles.launchButton}
-                activeOpacity={0.82}
-                onPress={handleLaunchActs}>
-                <View style={styles.launchContent}>
-                  <Sparkles size={16} color="#FFFFFF" />
-                  <Text style={styles.launchButtonText}>
-                    Launch Theatrical Dossier (17 Acts)
-                  </Text>
-                  <ChevronRight size={16} color="#FFFFFF" />
-                </View>
-              </TouchableOpacity>
-            </View>
-
-            {/* Apple 2x2 Frosted Stats Grid */}
-            <View style={styles.statsGrid}>
-              <View style={[styles.statCard, webGlassStyle]}>
-                <View style={styles.statIconRow}>
-                  <Heart size={15} color={Colors.systemPink} />
-                  <Text style={styles.statLabel}>CHEMISTRY</Text>
-                </View>
-                <Text style={[styles.statValue, { color: Colors.systemPink }]}>
-                  {profile.chemistry_score}/100
-                </Text>
-                <Text style={styles.statSub}>Playful romantic tension</Text>
-              </View>
-
-              <View style={[styles.statCard, webGlassStyle]}>
-                <View style={styles.statIconRow}>
-                  <ShieldCheck size={15} color={Colors.systemGreen} />
-                  <Text style={styles.statLabel}>SURVIVAL ODDS</Text>
-                </View>
-                <Text style={[styles.statValue, { color: Colors.systemGreen }]}>
-                  {profile.survival_probability}%
-                </Text>
-                <Text style={styles.statSub}>6-month endurance</Text>
-              </View>
-
-              <View style={[styles.statCard, webGlassStyle]}>
-                <View style={styles.statIconRow}>
-                  <Zap size={15} color={Colors.systemBlue} />
-                  <Text style={styles.statLabel}>REPLY SPEED</Text>
-                </View>
-                <Text style={[styles.statValue, { color: Colors.systemBlue }]}>
-                  {chron?.contact_median_delay_m || 0.5}m
-                </Text>
-                <Text style={styles.statSub}>Sub-minute rapid fire</Text>
-              </View>
-
-              <View style={[styles.statCard, webGlassStyle]}>
-                <View style={styles.statIconRow}>
-                  <TrendingUp size={15} color={Colors.systemCyan} />
-                  <Text style={styles.statLabel}>DOUBLE TEXTS</Text>
-                </View>
-                <Text style={[styles.statValue, { color: Colors.systemCyan }]}>
-                  {chron?.contact_double_texts?.toLocaleString() || '6,481'}
-                </Text>
-                <Text style={styles.statSub}>Contact flood rate</Text>
+              <View style={styles.powerStatsRow}>
+                <Text style={styles.powerStatText}>You: {userInitPct}%</Text>
+                <Text style={styles.powerStatText}>{contactName}: {contactInitPct}%</Text>
               </View>
             </View>
-          </>
-        ) : null}
-      </ScrollView>
+          </AppleElevatedCard>
 
-      {/* Apple Sheet Contact Switcher */}
+          {/* ============================================================ */}
+          {/* FORENSIC CHRONEMICS GRID */}
+          {/* ============================================================ */}
+          <View style={styles.sectionHeaderRow}>
+            <Text style={styles.sectionTitle}>Forensic Chronemics</Text>
+            <View style={styles.mathBadge}>
+              <Text style={styles.mathBadgeText}>MATHEMATICAL METRICS</Text>
+            </View>
+          </View>
+
+          <View style={styles.metricGrid}>
+            {/* Metric 1: Initiation */}
+            <AppleElevatedCard style={styles.metricCard}>
+              <Text style={styles.metricCardLabel}>INITIATION SPLIT</Text>
+              <Text style={styles.metricCardValue}>{userInitPct}% / {contactInitPct}%</Text>
+              <Text style={styles.metricCardSub}>You vs {contactName}</Text>
+            </AppleElevatedCard>
+
+            {/* Metric 2: Delay */}
+            <AppleElevatedCard style={styles.metricCard}>
+              <Text style={styles.metricCardLabel}>THEIR MEDIAN LAG</Text>
+              <Text style={styles.metricCardValue}>{contactDelay}</Text>
+              <Text style={styles.metricCardSub}>Response Latency</Text>
+            </AppleElevatedCard>
+
+            {/* Metric 3: Night Owl Texts */}
+            <AppleElevatedCard style={styles.metricCard}>
+              <Text style={styles.metricCardLabel}>NIGHT OWL TEXTS</Text>
+              <Text style={styles.metricCardValue}>{doubleTexts}</Text>
+              <Text style={styles.metricCardSub}>3:00 AM Double Texts</Text>
+            </AppleElevatedCard>
+
+            {/* Metric 4: Ghosting Threat */}
+            <AppleElevatedCard style={styles.metricCard}>
+              <Text style={styles.metricCardLabel}>GHOSTING RISK</Text>
+              <Text
+                style={[
+                  styles.metricCardValue,
+                  { color: isSevere ? Colors.accentDanger : Colors.accentSuccess },
+                ]}
+              >
+                {isSevere ? 'Severe' : 'Low'}
+              </Text>
+              <Text style={styles.metricCardSub}>Predictive Risk</Text>
+            </AppleElevatedCard>
+          </View>
+
+          {/* ============================================================ */}
+          {/* QUICK SHORTCUTS ROW */}
+          {/* ============================================================ */}
+          <View style={styles.shortcutsRow}>
+            <AppleElevatedCard
+              interactive
+              onPress={() => router.push('/acts-modal')}
+              style={styles.shortcutCard}
+            >
+              <Layers size={20} color={Colors.textPrimary} style={{ marginBottom: 8 }} />
+              <Text style={styles.shortcutTitle}>17 Theatrical Acts</Text>
+              <Text style={styles.shortcutSub}>Psychological Forensics</Text>
+            </AppleElevatedCard>
+
+            <AppleElevatedCard
+              interactive
+              onPress={() => router.push('/coach')}
+              style={styles.shortcutCard}
+            >
+              <MessageCircle size={20} color={Colors.accentGold} style={{ marginBottom: 8 }} />
+              <Text style={styles.shortcutTitle}>Doctor Delulu</Text>
+              <Text style={styles.shortcutSub}>Tactical Reply Triad</Text>
+            </AppleElevatedCard>
+          </View>
+
+          {/* ============================================================ */}
+          {/* TRANSCRIPT DROPZONE */}
+          {/* ============================================================ */}
+          <View style={styles.dropzoneSection}>
+            <Text style={styles.sectionTitle}>Update Transcript</Text>
+            <WhatsAppDropzone
+              vibeMode={vibeMode}
+              onVibeModeChange={setVibeMode}
+              onFileSelect={handleFileDrop}
+              isAnalyzing={isAnalyzing}
+            />
+          </View>
+        </ScrollView>
+      </View>
+
+      {/* ============================================================ */}
+      {/* CONTACT PICKER MODAL */}
+      {/* ============================================================ */}
       <Modal
         visible={showContactPicker}
-        animationType="slide"
-        transparent={true}
-        onRequestClose={() => setShowContactPicker(false)}>
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContainer}>
+        transparent
+        animationType="fade"
+        onRequestClose={() => setShowContactPicker(false)}
+      >
+        <TouchableOpacity
+          activeOpacity={1}
+          onPress={() => setShowContactPicker(false)}
+          style={styles.modalOverlay}
+        >
+          <View style={styles.modalSheet}>
             <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Select Active Contact</Text>
+              <Text style={styles.modalTitle}>Select Audited Contact</Text>
               <TouchableOpacity
                 onPress={() => setShowContactPicker(false)}
-                style={styles.modalCloseBtn}>
-                <X size={18} color={Colors.textPrimary} />
+                style={styles.modalCloseBtn}
+              >
+                <X size={18} color={Colors.textSecondary} />
               </TouchableOpacity>
             </View>
 
-            {contacts.map((c) => (
-              <TouchableOpacity
-                key={c.id}
-                style={[
-                  styles.contactOptionRow,
-                  c.id === activeContact?.id && styles.contactOptionActive,
-                ]}
-                onPress={() => handleSelectContact(c)}>
-                <View style={styles.contactAvatar}>
-                  <Text style={styles.contactAvatarText}>
-                    {c.display_name.charAt(0).toUpperCase()}
-                  </Text>
-                </View>
-                <View style={{ flex: 1 }}>
-                  <Text style={styles.contactOptionName}>{c.display_name}</Text>
-                  <Text style={styles.contactOptionSub}>Analyzed relationship history</Text>
-                </View>
-                {c.id === activeContact?.id ? (
-                  <Check size={18} color={Colors.systemBlue} />
-                ) : null}
-              </TouchableOpacity>
-            ))}
+            <ScrollView style={{ maxHeight: 320 }}>
+              {contacts.map((contact) => (
+                <TouchableOpacity
+                  key={contact.id}
+                  activeOpacity={0.8}
+                  onPress={() => handleSelectContact(contact)}
+                  style={[
+                    styles.contactItem,
+                    activeContact?.id === contact.id && styles.contactItemActive,
+                  ]}
+                >
+                  <View style={styles.contactAvatar}>
+                    <Text style={styles.contactAvatarText}>
+                      {contact.display_name.charAt(0).toUpperCase()}
+                    </Text>
+                  </View>
+                  <View style={{ flex: 1 }}>
+                    <Text style={styles.contactItemName}>{contact.display_name}</Text>
+                    <Text style={styles.contactItemSub}>
+                      {contact.created_at
+                        ? `Audited since ${contact.created_at.slice(0, 10)}`
+                        : 'Verified Chat Log'}
+                    </Text>
+                  </View>
+                  {activeContact?.id === contact.id ? (
+                    <Check size={18} color={Colors.accentGold} />
+                  ) : null}
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
           </View>
-        </View>
+        </TouchableOpacity>
       </Modal>
     </SafeAreaView>
   );
@@ -368,296 +424,297 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: Colors.background,
   },
-  container: {
+  desktopCanvas: {
     flex: 1,
+    width: '100%',
+    maxWidth: 480,
+    alignSelf: 'center',
     backgroundColor: Colors.background,
+    ...Platform.select({
+      web: {
+        borderLeftWidth: 1,
+        borderRightWidth: 1,
+        borderColor: Colors.borderHairline,
+        minHeight: '100vh',
+      } as any,
+    }),
+  },
+  scrollView: {
+    flex: 1,
   },
   scrollContent: {
-    paddingHorizontal: 16,
-    paddingTop: Platform.OS === 'android' ? 36 : 14,
-    paddingBottom: 48,
+    paddingHorizontal: Spacing.screenGutter,
+    paddingTop: 16,
+    paddingBottom: 110,
   },
   centerContainer: {
     flex: 1,
     backgroundColor: Colors.background,
-    justifyContent: 'center',
     alignItems: 'center',
+    justifyContent: 'center',
     padding: 24,
   },
-  loadingText: {
-    ...Typography.bodyMedium,
-    color: Colors.systemGray,
-    marginTop: 14,
+  loadingTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: Colors.textPrimary,
+    marginTop: 16,
+    letterSpacing: -0.3,
   },
-  header: {
+  loadingSub: {
+    fontSize: 13,
+    color: Colors.textTertiary,
+    marginTop: 4,
+    textAlign: 'center',
+  },
+  unboxingBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    padding: 20,
+    marginBottom: 24,
+  },
+  unboxingBannerContent: {
+    flex: 1,
+    paddingRight: 12,
+  },
+  unboxingBadgeRow: {
+    flexDirection: 'row',
+    marginBottom: 6,
+  },
+  unboxingBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: Colors.accentRoseSoft,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: Radius.full,
+  },
+  unboxingBadgeText: {
+    fontSize: 10,
+    fontWeight: '700',
+    letterSpacing: 0.6,
+    color: Colors.accentRose,
+  },
+  unboxingTitle: {
+    fontSize: 17,
+    fontWeight: '700',
+    color: Colors.textPrimary,
+    letterSpacing: -0.3,
+    marginBottom: 3,
+  },
+  unboxingSubtitle: {
+    fontSize: 12,
+    color: Colors.textTertiary,
+    lineHeight: 16,
+  },
+  chevronCircle: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: Colors.secondaryBackground,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  heroGaugeCard: {
+    padding: 22,
+    marginBottom: 32,
+  },
+  cardHeaderRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 18,
+    marginBottom: 8,
   },
-  brandTitle: {
-    fontSize: 28,
-    fontWeight: '700',
-    color: Colors.textPrimary,
-    letterSpacing: -0.5,
-  },
-  brandSubtitle: {
-    fontSize: 12,
-    fontWeight: '400',
-    color: Colors.systemGray,
-    marginTop: 1,
-  },
-  contactPill: {
+  statusPill: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.08)',
-    borderWidth: 0.5,
-    borderColor: 'rgba(255, 255, 255, 0.16)',
-    paddingHorizontal: 12,
-    paddingVertical: 7,
+    backgroundColor: Colors.secondaryBackground,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
     borderRadius: Radius.full,
-    maxWidth: 165,
   },
-  onlineDot: {
+  pulseDot: {
     width: 6,
     height: 6,
-    borderRadius: Radius.full,
+    borderRadius: 3,
     backgroundColor: Colors.systemGreen,
     marginRight: 6,
   },
-  contactPillText: {
-    fontSize: 12,
+  statusPillText: {
+    fontSize: 11,
     fontWeight: '600',
-    color: Colors.textPrimary,
-    marginRight: 4,
+    color: Colors.textSecondary,
   },
-  heroCard: {
-    backgroundColor: Colors.glassSurface,
-    borderRadius: Radius.xl,
-    padding: 20,
-    borderWidth: 1,
-    borderColor: Colors.glassBorder,
+  serialText: {
+    fontSize: 11,
+    fontWeight: '500',
+    color: Colors.textTertiary,
+    fontFamily: Platform.OS === 'ios' ? 'Courier' : 'monospace',
+  },
+  gaugeContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 12,
+  },
+  verdictContainer: {
+    alignItems: 'center',
+    marginTop: 8,
     marginBottom: 20,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.35,
-    shadowRadius: 24,
+    paddingHorizontal: 8,
   },
-  heroHeaderRow: {
+  archetypeBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: Colors.accentGoldSoft,
+    paddingHorizontal: 12,
+    paddingVertical: 5,
+    borderRadius: Radius.full,
+    marginBottom: 10,
+  },
+  archetypeText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: Colors.accentGold,
+  },
+  verdictQuote: {
+    fontSize: 15,
+    lineHeight: 22,
+    color: Colors.textSecondary,
+    textAlign: 'center',
+    fontStyle: 'italic',
+  },
+  powerSection: {
+    paddingTop: 16,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: Colors.borderHairline,
+  },
+  powerLabelRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 16,
-  },
-  statusBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: 'rgba(255, 45, 85, 0.12)',
-    borderWidth: 0.5,
-    borderColor: 'rgba(255, 45, 85, 0.3)',
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: Radius.full,
-    gap: 4,
-  },
-  statusBadgeText: {
-    fontSize: 10,
-    fontWeight: '700',
-    letterSpacing: 0.8,
-    color: Colors.systemPink,
-  },
-  vibeBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: 'rgba(0, 122, 255, 0.12)',
-    borderWidth: 0.5,
-    borderColor: 'rgba(0, 122, 255, 0.3)',
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: Radius.full,
-    gap: 4,
-  },
-  vibeBadgeText: {
-    fontSize: 10,
-    fontWeight: '700',
-    letterSpacing: 0.8,
-    color: Colors.systemBlue,
-  },
-  statusLabel: {
-    fontSize: 22,
-    fontWeight: '700',
-    lineHeight: 28,
-    color: Colors.textPrimary,
-    letterSpacing: -0.4,
-    textAlign: 'center',
-    marginBottom: 12,
-  },
-  meterWrapper: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginVertical: 8,
-  },
-  archetypeGrid: {
-    flexDirection: 'row',
-    gap: 10,
-    marginVertical: 12,
-  },
-  archetypeBox: {
-    flex: 1,
-    backgroundColor: 'rgba(255, 255, 255, 0.04)',
-    borderRadius: Radius.lg,
-    padding: 14,
-    borderWidth: 0.5,
-    borderColor: 'rgba(255, 255, 255, 0.10)',
-  },
-  archetypeBoxPartner: {
-    backgroundColor: 'rgba(255, 45, 85, 0.04)',
-    borderColor: 'rgba(255, 45, 85, 0.25)',
-  },
-  archetypeRole: {
-    fontSize: 10,
-    fontWeight: '700',
-    letterSpacing: 0.8,
-    color: Colors.systemBlue,
-    marginBottom: 4,
-  },
-  archetypeName: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: Colors.textPrimary,
-    marginBottom: 4,
-    letterSpacing: -0.1,
-  },
-  archetypeSub: {
-    fontSize: 11,
-    fontWeight: '400',
-    color: Colors.systemGray,
-    lineHeight: 15,
-  },
-  diagnosisBox: {
-    backgroundColor: 'rgba(255, 255, 255, 0.03)',
-    borderRadius: Radius.md,
-    padding: 14,
-    borderLeftWidth: 3,
-    borderLeftColor: Colors.systemBlue,
-    marginVertical: 12,
-  },
-  diagnosisQuote: {
-    fontSize: 13,
-    fontWeight: '400',
-    lineHeight: 19,
-    color: Colors.systemGray,
-    fontStyle: 'italic',
-  },
-  launchButton: {
-    backgroundColor: Colors.systemBlue,
-    borderRadius: Radius.full,
-    paddingVertical: 15,
-    paddingHorizontal: 20,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginTop: 10,
-    shadowColor: Colors.systemBlue,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.35,
-    shadowRadius: 14,
-  },
-  launchContent: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
-  },
-  launchButtonText: {
-    fontSize: 15,
-    fontWeight: '600',
-    color: '#FFFFFF',
-    letterSpacing: -0.2,
-  },
-  statsGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 10,
-  },
-  statCard: {
-    width: '48.4%',
-    backgroundColor: Colors.glassSurface,
-    borderRadius: Radius.xl,
-    padding: 15,
-    borderWidth: 1,
-    borderColor: Colors.glassBorder,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 12,
-  },
-  statIconRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    marginBottom: 6,
-  },
-  statLabel: {
-    fontSize: 10,
-    fontWeight: '600',
-    letterSpacing: 0.8,
-    color: Colors.systemGray,
-  },
-  statValue: {
-    fontSize: 22,
-    fontWeight: '700',
-    letterSpacing: -0.5,
-    marginBottom: 2,
-  },
-  statSub: {
-    fontSize: 11,
-    fontWeight: '400',
-    color: Colors.systemGray,
-  },
-  errorCard: {
-    backgroundColor: 'rgba(255, 149, 0, 0.1)',
-    borderRadius: Radius.md,
-    padding: 14,
-    borderWidth: 1,
-    borderColor: Colors.systemOrange,
-    marginBottom: 16,
-  },
-  errorTitle: {
-    fontSize: 13,
-    fontWeight: '700',
-    color: Colors.systemOrange,
-    marginBottom: 2,
-  },
-  errorBody: {
-    fontSize: 12,
-    color: Colors.systemGray,
     marginBottom: 8,
   },
-  retryButton: {
-    alignSelf: 'flex-start',
-    backgroundColor: Colors.systemOrange,
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-    borderRadius: Radius.sm,
+  powerTitle: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: Colors.textSecondary,
   },
-  retryText: {
+  powerStatus: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: Colors.textTertiary,
+  },
+  powerTrack: {
+    height: 6,
+    backgroundColor: Colors.secondaryBackground,
+    borderRadius: 3,
+    overflow: 'hidden',
+    marginBottom: 6,
+  },
+  powerFill: {
+    height: '100%',
+    backgroundColor: Colors.textPrimary,
+    borderRadius: 3,
+  },
+  powerStatsRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  powerStatText: {
     fontSize: 11,
+    color: Colors.textTertiary,
+  },
+  sectionHeaderRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 14,
+  },
+  sectionTitle: {
+    fontSize: 17,
     fontWeight: '700',
-    color: '#000000',
+    letterSpacing: -0.3,
+    color: Colors.textPrimary,
+  },
+  mathBadge: {
+    backgroundColor: Colors.secondaryBackground,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: Radius.full,
+  },
+  mathBadgeText: {
+    fontSize: 10,
+    fontWeight: '700',
+    letterSpacing: 0.6,
+    color: Colors.textTertiary,
+  },
+  metricGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 12,
+    marginBottom: 28,
+  },
+  metricCard: {
+    flex: 1,
+    minWidth: '46%',
+    padding: 16,
+    alignItems: 'center',
+  },
+  metricCardLabel: {
+    fontSize: 10,
+    fontWeight: '700',
+    letterSpacing: 0.6,
+    color: Colors.textTertiary,
+    marginBottom: 6,
+  },
+  metricCardValue: {
+    fontSize: 22,
+    fontWeight: '800',
+    letterSpacing: -0.5,
+    color: Colors.textPrimary,
+    marginBottom: 2,
+  },
+  metricCardSub: {
+    fontSize: 11,
+    color: Colors.textTertiary,
+  },
+  shortcutsRow: {
+    flexDirection: 'row',
+    gap: 12,
+    marginBottom: 32,
+  },
+  shortcutCard: {
+    flex: 1,
+    padding: 18,
+    alignItems: 'flex-start',
+  },
+  shortcutTitle: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: Colors.textPrimary,
+    letterSpacing: -0.2,
+    marginBottom: 2,
+  },
+  shortcutSub: {
+    fontSize: 12,
+    color: Colors.textTertiary,
+  },
+  dropzoneSection: {
+    marginBottom: 20,
   },
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.75)',
+    backgroundColor: 'rgba(0, 0, 0, 0.40)',
     justifyContent: 'flex-end',
   },
-  modalContainer: {
-    backgroundColor: '#1C1C1E',
+  modalSheet: {
+    backgroundColor: Colors.background,
     borderTopLeftRadius: Radius.xl,
     borderTopRightRadius: Radius.xl,
-    padding: 20,
+    paddingHorizontal: 24,
+    paddingTop: 20,
     paddingBottom: 40,
-    borderTopWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.12)',
   },
   modalHeader: {
     flexDirection: 'row',
@@ -671,40 +728,47 @@ const styles = StyleSheet.create({
     color: Colors.textPrimary,
   },
   modalCloseBtn: {
-    padding: 6,
-  },
-  contactOptionRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-    paddingVertical: 12,
-    paddingHorizontal: 12,
-    borderRadius: Radius.md,
-    marginBottom: 6,
-  },
-  contactOptionActive: {
-    backgroundColor: 'rgba(0, 122, 255, 0.15)',
-  },
-  contactAvatar: {
-    width: 36,
-    height: 36,
-    borderRadius: Radius.full,
-    backgroundColor: Colors.systemBlue,
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: Colors.secondaryBackground,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  contactItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 12,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: Colors.borderHairline,
+  },
+  contactItemActive: {
+    backgroundColor: Colors.secondaryBackground,
+    borderRadius: Radius.md,
+    paddingHorizontal: 8,
+  },
+  contactAvatar: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: Colors.secondaryBackground,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 12,
   },
   contactAvatarText: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#FFFFFF',
+    color: Colors.textPrimary,
   },
-  contactOptionName: {
+  contactItemName: {
     fontSize: 15,
     fontWeight: '600',
     color: Colors.textPrimary,
   },
-  contactOptionSub: {
+  contactItemSub: {
     fontSize: 12,
-    color: Colors.systemGray,
+    color: Colors.textTertiary,
+    marginTop: 2,
   },
 });

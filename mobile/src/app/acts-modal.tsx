@@ -11,6 +11,7 @@ import {
   Share,
   Platform,
   ScrollView,
+  Modal,
 } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import * as Haptics from 'expo-haptics';
@@ -32,6 +33,7 @@ import {
 
 import { Colors, Radius, Typography } from '../constants/theme';
 import { getAllActs, TheatricalAct, getContacts } from '../services/api';
+import { ViralReceiptCard, ViralReceiptData } from '../components/unboxing';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
@@ -43,6 +45,7 @@ export default function ActsModal() {
   const [acts, setActs] = useState<TheatricalAct[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeIndex, setActiveIndex] = useState(0);
+  const [storyModalVisible, setStoryModalVisible] = useState(false);
   const flatListRef = useRef<FlatList>(null);
 
   useEffect(() => {
@@ -74,25 +77,11 @@ export default function ActsModal() {
     router.back();
   };
 
-  const handleShareCard = async (act: TheatricalAct) => {
+  const handleShareCard = (act: TheatricalAct) => {
     if (Platform.OS !== 'web') {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     }
-    try {
-      const c = act.content || {};
-      const highlight =
-        c.diagnosis ||
-        c.definitive_ruling ||
-        c.projected_outcome ||
-        c.summary_verdict ||
-        'Relationship Dossier Card';
-
-      await Share.share({
-        message: `ASSIFY Relationship Intelligence — Act ${act.act_number}: ${act.act_name}\n\n"${highlight}"\n\nForensically analyzed with ASSIFY.`,
-      });
-    } catch (err) {
-      console.error(err);
-    }
+    setStoryModalVisible(true);
   };
 
   const onViewableItemsChanged = useRef(({ viewableItems }: any) => {
@@ -120,39 +109,40 @@ export default function ActsModal() {
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      {/* Top 17-Segment Story Progress Header */}
-      <View style={styles.topBar}>
-        {/* Progress Ticks */}
-        <View style={styles.ticksContainer}>
-          {acts.map((_, i) => (
-            <View
-              key={i}
-              style={[
-                styles.tick,
-                i === activeIndex && styles.tickActive,
-                i < activeIndex && styles.tickPassed,
-              ]}
-            />
-          ))}
-        </View>
-
-        {/* Header Actions */}
-        <View style={styles.headerRow}>
-          <View style={styles.actTag}>
-            <Sparkles size={12} color={Colors.systemBlue} />
-            <Text style={styles.actTagText}>
-              ACT {currentAct?.act_number || 1} OF {acts.length}
-            </Text>
+      <View style={styles.desktopCanvas}>
+        {/* Top 17-Segment Story Progress Header */}
+        <View style={styles.topBar}>
+          {/* Progress Ticks */}
+          <View style={styles.ticksContainer}>
+            {acts.map((_, i) => (
+              <View
+                key={i}
+                style={[
+                  styles.tick,
+                  i === activeIndex && styles.tickActive,
+                  i < activeIndex && styles.tickPassed,
+                ]}
+              />
+            ))}
           </View>
 
-          <TouchableOpacity
-            style={styles.closeBtn}
-            activeOpacity={0.8}
-            onPress={handleClose}>
-            <X size={18} color={Colors.textPrimary} />
-          </TouchableOpacity>
+          {/* Header Actions */}
+          <View style={styles.headerRow}>
+            <View style={styles.actTag}>
+              <Sparkles size={12} color={Colors.systemBlue} />
+              <Text style={styles.actTagText}>
+                Act {currentAct?.act_number || 1} of {acts.length}
+              </Text>
+            </View>
+
+            <TouchableOpacity
+              style={styles.closeBtn}
+              activeOpacity={0.8}
+              onPress={handleClose}>
+              <X size={18} color={Colors.textPrimary} />
+            </TouchableOpacity>
+          </View>
         </View>
-      </View>
 
       {/* Vertical Snap Swiper */}
       <FlatList
@@ -211,6 +201,48 @@ export default function ActsModal() {
           </View>
         )}
       />
+      </View>
+
+      {/* Viral 9:16 Receipt Card Modal */}
+      <Modal
+        visible={storyModalVisible}
+        animationType="slide"
+        presentationStyle="pageSheet"
+        onRequestClose={() => setStoryModalVisible(false)}
+      >
+        <SafeAreaView style={{ flex: 1, backgroundColor: '#000000' }}>
+          <ScrollView
+            contentContainerStyle={{
+              alignItems: 'center',
+              paddingVertical: 20,
+            }}
+          >
+            <ViralReceiptCard
+              data={{
+                contactName: params.contactName || 'Elena',
+                deluluScore: 84,
+                circusLevel: 'CIRCUS HEADLINER',
+                archetype: currentAct?.act_name || 'The Olympic Paragraph Writer',
+                verdictSummary:
+                  currentAct?.content?.diagnosis ||
+                  currentAct?.content?.definitive_ruling ||
+                  currentAct?.content?.summary_verdict ||
+                  'You are romanticizing radio silence.',
+                initiationRatio: { user: 81, contact: 19 },
+                medianResponseTime: { user: '3m', contact: '4h 48m' },
+                killingQuote: {
+                  quote:
+                    currentAct?.content?.quote ||
+                    currentAct?.content?.key_quote ||
+                    'Haha yeah totally crazy week will let u know!!',
+                  gapDuration: '4h Lag',
+                },
+              }}
+              onClose={() => setStoryModalVisible(false)}
+            />
+          </ScrollView>
+        </SafeAreaView>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -440,6 +472,20 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: Colors.background,
   },
+  desktopCanvas: {
+    flex: 1,
+    width: '100%',
+    maxWidth: 480,
+    alignSelf: 'center',
+    backgroundColor: Colors.background,
+    ...(Platform.OS === 'web'
+      ? {
+          borderLeftWidth: 1,
+          borderRightWidth: 1,
+          borderColor: Colors.borderHairline,
+        }
+      : {}),
+  },
   centerContainer: {
     flex: 1,
     backgroundColor: Colors.background,
@@ -449,7 +495,7 @@ const styles = StyleSheet.create({
   },
   loadingText: {
     ...Typography.bodyMedium,
-    color: Colors.systemGray,
+    color: Colors.textTertiary,
     marginTop: 14,
   },
   topBar: {
@@ -466,13 +512,13 @@ const styles = StyleSheet.create({
     flex: 1,
     height: 3,
     borderRadius: 2,
-    backgroundColor: 'rgba(255, 255, 255, 0.15)',
+    backgroundColor: Colors.secondaryBackground,
   },
   tickPassed: {
-    backgroundColor: Colors.systemBlue,
+    backgroundColor: Colors.accentGold,
   },
   tickActive: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: Colors.textPrimary,
     height: 4,
   },
   headerRow: {
@@ -483,7 +529,7 @@ const styles = StyleSheet.create({
   actTag: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(0, 122, 255, 0.12)',
+    backgroundColor: Colors.accentGoldSoft,
     paddingHorizontal: 10,
     paddingVertical: 4,
     borderRadius: Radius.full,
@@ -493,29 +539,40 @@ const styles = StyleSheet.create({
     fontSize: 10,
     fontWeight: '700',
     letterSpacing: 0.8,
-    color: Colors.systemBlue,
+    color: Colors.accentGold,
   },
   closeBtn: {
     padding: 6,
     borderRadius: Radius.full,
-    backgroundColor: 'rgba(255, 255, 255, 0.08)',
+    backgroundColor: Colors.secondaryBackground,
   },
   cardContainer: {
+    width: Platform.OS === 'web' ? Math.min(SCREEN_WIDTH, 480) : SCREEN_WIDTH,
     paddingHorizontal: 16,
     justifyContent: 'center',
   },
   actCard: {
     flex: 1,
-    backgroundColor: Colors.glassSurface,
+    backgroundColor: '#FFFFFF',
     borderRadius: Radius.xl,
     padding: 20,
     borderWidth: 1,
-    borderColor: Colors.glassBorder,
+    borderColor: Colors.borderCard,
     justifyContent: 'space-between',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.35,
-    shadowRadius: 24,
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 8 },
+        shadowOpacity: 0.06,
+        shadowRadius: 20,
+      },
+      android: {
+        elevation: 4,
+      },
+      web: {
+        boxShadow: '0 8px 30px rgba(0, 0, 0, 0.06)',
+      } as any,
+    }),
   },
   actHeaderRow: {
     marginBottom: 14,

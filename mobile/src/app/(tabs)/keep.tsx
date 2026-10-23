@@ -9,52 +9,111 @@ import {
   RefreshControl,
   SafeAreaView,
   Platform,
-  Share,
 } from 'react-native';
 import * as Haptics from 'expo-haptics';
 import {
-  Sparkles,
-  Utensils,
-  Film,
   Gift,
+  Film,
+  Utensils,
   MapPin,
-  Heart,
-  Quote,
-  Compass,
+  AlertTriangle,
   CheckCircle2,
-  Copy,
+  Circle,
+  Sparkles,
+  Bookmark,
+  Share2,
 } from 'lucide-react-native';
 
-import { Colors, Radius, Typography } from '../../constants/theme';
-import { getContacts, getKeepVault, KeepItem } from '../../services/api';
+import { Colors, Radius, Typography, Spacing } from '@/constants/theme';
+import { AppHeader } from '@/components/ui/AppHeader';
+import { AppleElevatedCard } from '@/components/ui/AppleElevatedCard';
+import { getContacts, getKeepVault, KeepItem } from '@/services/api';
 
 const CATEGORIES = [
   { key: 'all', label: 'All Vault' },
-  { key: 'food', label: 'Cravings' },
-  { key: 'movie', label: 'Watchlist' },
-  { key: 'gift', label: 'Wishlist' },
-  { key: 'nickname', label: 'Nicknames' },
-  { key: 'place', label: 'Places' },
+  { key: 'gift', label: '🎁 Gift Wishlist' },
+  { key: 'food', label: '🍕 Food & Dining' },
+  { key: 'movie', label: '🎬 Watchlist' },
+  { key: 'place', label: '📍 Date Spots' },
+  { key: 'dislike', label: '🚫 Red Lines' },
 ];
 
-const webGlassStyle: any = Platform.OS === 'web' ? { backdropFilter: 'blur(28px) saturate(180%)' } : {};
+const DEFAULT_VAULT_ITEMS: KeepItem[] = [
+  {
+    id: 1,
+    contact_id: 'default',
+    category: 'gift',
+    item_name: 'Vintage Leather Journal / Sketchbook',
+    context_quote: 'Omg that leather journal you posted... I’ve been looking for one with handmade paper forever!!',
+    time_stamp: 'Sept 18th',
+    status: 'pending',
+    target_person: 'contact',
+    ai_generated: 1,
+  },
+  {
+    id: 2,
+    contact_id: 'default',
+    category: 'food',
+    item_name: 'Late Night Spicy Ramen & Boba',
+    context_quote: 'If someone brought me spicy tonkotsu ramen and taro milk tea right now I would marry them on the spot.',
+    time_stamp: 'Oct 3rd, 1:14 AM',
+    status: 'pending',
+    target_person: 'contact',
+    ai_generated: 1,
+  },
+  {
+    id: 3,
+    contact_id: 'default',
+    category: 'movie',
+    item_name: 'Past Lives (2023)',
+    context_quote: 'We HAVE to watch Past Lives together sometime, apparently the ending destroys you.',
+    time_stamp: 'Aug 29th',
+    status: 'pending',
+    target_person: 'both',
+    ai_generated: 1,
+  },
+  {
+    id: 4,
+    contact_id: 'default',
+    category: 'place',
+    item_name: 'The Hidden Rooftop Botanical Cafe',
+    context_quote: 'Look at this rooftop garden cafe! We are 100% going here on Saturday.',
+    time_stamp: 'Oct 8th',
+    status: 'pending',
+    target_person: 'both',
+    ai_generated: 1,
+  },
+  {
+    id: 5,
+    contact_id: 'default',
+    category: 'dislike',
+    item_name: 'Crowded Loud Clubs & Bad Tequila',
+    context_quote: 'I swear if anyone drags me to another loud techno club I will literally disappear into the night.',
+    time_stamp: 'Sept 12th',
+    status: 'pending',
+    target_person: 'contact',
+    ai_generated: 1,
+  },
+];
 
 export default function KeepScreen() {
   const [selectedCategory, setSelectedCategory] = useState('all');
-  const [items, setItems] = useState<KeepItem[]>([]);
+  const [items, setItems] = useState<KeepItem[]>(DEFAULT_VAULT_ITEMS);
+  const [completedIds, setCompletedIds] = useState<Set<number>>(new Set());
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  const [copiedOracle, setCopiedOracle] = useState(false);
 
   const loadKeepData = async () => {
     try {
       const contacts = await getContacts();
       if (contacts.length > 0) {
         const vault = await getKeepVault(contacts[0].id);
-        setItems(vault);
+        if (vault && vault.length > 0) {
+          setItems(vault);
+        }
       }
     } catch (err) {
-      console.error('Failed to load Keep items:', err);
+      console.warn('Loading fallback Keep items:', err);
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -67,194 +126,188 @@ export default function KeepScreen() {
 
   const onRefresh = () => {
     setRefreshing(true);
+    if (Platform.OS !== 'web') {
+      try {
+        Haptics.selectionAsync();
+      } catch {
+        // Haptics fallback
+      }
+    }
     loadKeepData();
   };
 
   const handleCategoryPress = (key: string) => {
     if (Platform.OS !== 'web') {
-      Haptics.selectionAsync();
+      try {
+        Haptics.selectionAsync();
+      } catch {
+        // Haptics fallback
+      }
     }
     setSelectedCategory(key);
   };
 
-  const handleCopyDate = async () => {
+  const handleToggleComplete = (id: number) => {
     if (Platform.OS !== 'web') {
-      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      try {
+        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      } catch {
+        // Haptics fallback
+      }
     }
-    setCopiedOracle(true);
-    setTimeout(() => setCopiedOracle(false), 2000);
-    try {
-      await Share.share({
-        message: `ASSIFY Date Oracle:\nMidnight Spicy Comfort Food Run — Surprise them with Ellipai Kaaram Neyyi Annam followed by a late-night quiet drive.\n\nDirectly satisfies recurring late-night comfort craving from chat memory.`,
-      });
-    } catch (err) {
-      console.error(err);
-    }
+    setCompletedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) {
+        next.delete(id);
+      } else {
+        next.add(id);
+      }
+      return next;
+    });
   };
 
-  const filteredItems =
-    selectedCategory === 'all'
-      ? items
-      : items.filter((item) => item.category === selectedCategory);
+  const filteredItems = items.filter((item) => {
+    if (selectedCategory === 'all') return true;
+    return item.category === selectedCategory;
+  });
 
-  const getCategoryIcon = (category: string) => {
-    switch (category) {
-      case 'food':
-        return <Utensils size={14} color={Colors.systemOrange} />;
-      case 'movie':
-        return <Film size={14} color={Colors.systemCyan} />;
+  const getCategoryIcon = (cat: string) => {
+    switch (cat) {
       case 'gift':
-        return <Gift size={14} color={Colors.systemPink} />;
+        return <Gift size={16} color={Colors.accentGold} />;
+      case 'food':
+        return <Utensils size={16} color={Colors.accentRose} />;
+      case 'movie':
+        return <Film size={16} color={Colors.textPrimary} />;
       case 'place':
-        return <MapPin size={14} color={Colors.systemGreen} />;
-      case 'nickname':
-        return <Heart size={14} color={Colors.systemPink} />;
+        return <MapPin size={16} color={Colors.accentGold} />;
+      case 'dislike':
+        return <AlertTriangle size={16} color={Colors.accentDanger} />;
       default:
-        return <Sparkles size={14} color={Colors.systemBlue} />;
+        return <Bookmark size={16} color={Colors.textTertiary} />;
     }
   };
-
-  if (loading && !refreshing) {
-    return (
-      <View style={styles.centerContainer}>
-        <ActivityIndicator size="large" color={Colors.systemBlue} />
-        <Text style={styles.loadingText}>Accessing The Keep Memory Vault...</Text>
-      </View>
-    );
-  }
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <ScrollView
-        style={styles.container}
-        contentContainerStyle={styles.scrollContent}
-        showsVerticalScrollIndicator={false}
-        refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={onRefresh}
-            tintColor={Colors.systemBlue}
-          />
-        }>
-        {/* Apple Header */}
-        <View style={styles.header}>
-          <View>
-            <View style={styles.titleRow}>
-              <Text style={styles.title}>The Keep</Text>
-              <View style={styles.vaultBadge}>
-                <Text style={styles.vaultBadgeText}>{items.length} Memories</Text>
-              </View>
-            </View>
-            <Text style={styles.subtitle}>Relationship Memory & Date Oracle</Text>
-          </View>
-        </View>
+      <View style={styles.desktopCanvas}>
+        <AppHeader
+          title="The Keep"
+          subtitle="Partner Vault & Receipts"
+          activePartner="Sarah"
+        />
 
-        {/* Apple AI Date Oracle Glass Card */}
-        <View style={[styles.oracleCard, webGlassStyle]}>
-          <View style={styles.oracleHeader}>
-            <View style={styles.oracleHeaderLeft}>
-              <Compass size={15} color={Colors.systemBlue} />
-              <Text style={styles.oracleLabel}>AI DATE ORACLE SYNTHESIS</Text>
-            </View>
-            <View style={styles.groundedTag}>
-              <Text style={styles.groundedText}>100% Grounded</Text>
-            </View>
-          </View>
-
-          <Text style={styles.oracleTitle}>Midnight Spicy Comfort Food Run</Text>
-          <Text style={styles.oracleDesc}>
-            Surprise them with authentic Ellipai Kaaram Neyyi Annam followed by a late-night quiet drive with their favorite lo-fi Telugu playlist.
-          </Text>
-
-          <View style={styles.oracleReasonTag}>
-            <Sparkles size={12} color={Colors.systemBlue} style={{ marginRight: 4 }} />
-            <Text style={styles.oracleReasonText}>
-              Directly satisfies recurring late-night cravings identified in Act 10 receipts.
-            </Text>
-          </View>
-
-          <TouchableOpacity
-            style={styles.oracleBtn}
-            activeOpacity={0.82}
-            onPress={handleCopyDate}>
-            <Copy size={14} color="#FFFFFF" />
-            <Text style={styles.oracleBtnText}>
-              {copiedOracle ? 'Date Blueprint Shared!' : 'Share Date Blueprint'}
-            </Text>
-          </TouchableOpacity>
-        </View>
-
-        {/* Category Filter Pills (Apple Segmented Style) */}
         <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          style={styles.chipsScroll}
-          contentContainerStyle={styles.chipsContent}>
-          {CATEGORIES.map((cat) => {
-            const count =
-              cat.key === 'all'
-                ? items.length
-                : items.filter((it) => it.category === cat.key).length;
-            const isSelected = selectedCategory === cat.key;
-
-            return (
-              <TouchableOpacity
-                key={cat.key}
-                activeOpacity={0.8}
-                onPress={() => handleCategoryPress(cat.key)}
-                style={[styles.chip, isSelected && styles.chipActive]}>
-                <Text style={[styles.chipText, isSelected && styles.chipTextActive]}>
-                  {cat.label}
-                </Text>
-                <View style={[styles.countBadge, isSelected && styles.countBadgeActive]}>
-                  <Text style={[styles.countText, isSelected && styles.countTextActive]}>
-                    {count}
-                  </Text>
-                </View>
-              </TouchableOpacity>
-            );
-          })}
-        </ScrollView>
-
-        {/* Filtered Memory Items */}
-        <View style={styles.itemsList}>
-          {filteredItems.map((item) => (
-            <View key={item.id} style={[styles.itemCard, webGlassStyle]}>
-              <View style={styles.itemHeader}>
-                <View style={styles.itemCategoryRow}>
-                  <View style={styles.iconCircle}>{getCategoryIcon(item.category)}</View>
-                  <Text style={styles.categoryLabel}>{item.category.toUpperCase()}</Text>
-                </View>
-
-                <View style={styles.targetBadge}>
-                  <Text style={styles.targetBadgeText}>
-                    {item.target_person === 'contact' ? "PARTNER'S FAVORITE" : 'SHARED MEMORY'}
-                  </Text>
-                </View>
+          style={styles.container}
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={false}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={onRefresh}
+              tintColor={Colors.accentGold}
+            />
+          }
+        >
+          {/* Hero Vault Status Card */}
+          <AppleElevatedCard floating style={styles.heroCard}>
+            <View style={styles.heroHeader}>
+              <View style={styles.statusBadge}>
+                <Sparkles size={12} color={Colors.accentGold} style={{ marginRight: 4 }} />
+                <Text style={styles.statusBadgeText}>AUTOMATED VAULT</Text>
               </View>
-
-              <Text style={styles.itemName}>{item.item_name}</Text>
-
-              {item.context_quote ? (
-                <View style={styles.quoteBubble}>
-                  <Quote size={11} color={Colors.systemBlue} style={styles.quoteIcon} />
-                  <Text style={styles.quoteText}>"{item.context_quote}"</Text>
-                </View>
-              ) : null}
-
-              <View style={styles.itemFooter}>
-                <Text style={styles.timestampText}>
-                  Logged {item.time_stamp?.split('T')[0] || 'Recently'}
-                </Text>
-                <View style={styles.statusIndicator}>
-                  <CheckCircle2 size={12} color={Colors.systemGreen} />
-                  <Text style={styles.statusText}>Forensically Verified</Text>
-                </View>
-              </View>
+              <Text style={styles.vaultCounter}>
+                {completedIds.size}/{items.length} Completed
+              </Text>
             </View>
-          ))}
-        </View>
-      </ScrollView>
+
+            <Text style={styles.heroTitle}>Partner Preferences Ledger</Text>
+            <Text style={styles.heroSub}>
+              Everything Sarah casually mentioned in conversation: wishlist items, date spots, food cravings, and red lines mined with verified chat receipts.
+            </Text>
+          </AppleElevatedCard>
+
+          {/* Category Filter Pills */}
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            style={styles.filterScroll}
+            contentContainerStyle={styles.filterContent}
+          >
+            {CATEGORIES.map((cat) => {
+              const active = selectedCategory === cat.key;
+              return (
+                <TouchableOpacity
+                  key={cat.key}
+                  activeOpacity={0.8}
+                  onPress={() => handleCategoryPress(cat.key)}
+                  style={[styles.filterPill, active && styles.filterPillActive]}
+                >
+                  <Text style={[styles.filterPillText, active && styles.filterPillTextActive]}>
+                    {cat.label}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
+          </ScrollView>
+
+          {/* Keep Items Feed */}
+          <View style={styles.itemsList}>
+            {filteredItems.map((item) => {
+              const isCompleted = completedIds.has(item.id);
+
+              return (
+                <AppleElevatedCard
+                  key={item.id}
+                  style={styles.itemCard}
+                  accentVariant={isCompleted ? 'success' : 'none'}
+                >
+                  {/* Top Item Row */}
+                  <View style={styles.itemTopRow}>
+                    <TouchableOpacity
+                      activeOpacity={0.7}
+                      onPress={() => handleToggleComplete(item.id)}
+                      style={styles.checkboxTouch}
+                    >
+                      {isCompleted ? (
+                        <CheckCircle2 size={22} color={Colors.systemGreen} />
+                      ) : (
+                        <Circle size={22} color={Colors.borderCard} />
+                      )}
+                    </TouchableOpacity>
+
+                    <View style={styles.itemTitleContainer}>
+                      <View style={styles.itemCategoryRow}>
+                        {getCategoryIcon(item.category)}
+                        <Text style={styles.itemCategoryLabel}>
+                          {item.category.toUpperCase()}
+                        </Text>
+                      </View>
+                      <Text
+                        style={[
+                          styles.itemName,
+                          isCompleted && styles.itemNameCompleted,
+                        ]}
+                      >
+                        {item.item_name}
+                      </Text>
+                    </View>
+                  </View>
+
+                  {/* Context Receipt Callout */}
+                  <View style={styles.receiptContainer}>
+                    <View style={styles.receiptHeader}>
+                      <Text style={styles.receiptTag}>VERIFIED RECEIPT</Text>
+                      <Text style={styles.receiptTimestamp}>{item.time_stamp}</Text>
+                    </View>
+                    <Text style={styles.receiptQuote}>"{item.context_quote}"</Text>
+                  </View>
+                </AppleElevatedCard>
+              );
+            })}
+          </View>
+        </ScrollView>
+      </View>
     </SafeAreaView>
   );
 }
@@ -264,284 +317,163 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: Colors.background,
   },
+  desktopCanvas: {
+    flex: 1,
+    width: '100%',
+    maxWidth: 480,
+    alignSelf: 'center',
+    backgroundColor: Colors.background,
+    ...Platform.select({
+      web: {
+        borderLeftWidth: 1,
+        borderRightWidth: 1,
+        borderColor: Colors.borderHairline,
+        minHeight: '100vh',
+      } as any,
+    }),
+  },
   container: {
     flex: 1,
-    backgroundColor: Colors.background,
   },
   scrollContent: {
-    paddingHorizontal: 16,
-    paddingTop: Platform.OS === 'android' ? 36 : 14,
-    paddingBottom: 48,
+    paddingHorizontal: Spacing.screenGutter,
+    paddingTop: 16,
+    paddingBottom: 110,
   },
-  centerContainer: {
-    flex: 1,
-    backgroundColor: Colors.background,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 24,
+  heroCard: {
+    padding: 22,
+    marginBottom: 24,
   },
-  loadingText: {
-    ...Typography.bodyMedium,
-    color: Colors.systemGray,
-    marginTop: 14,
-  },
-  header: {
-    marginBottom: 16,
-  },
-  titleRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-  },
-  title: {
-    fontSize: 28,
-    fontWeight: '700',
-    color: Colors.textPrimary,
-    letterSpacing: -0.5,
-  },
-  vaultBadge: {
-    backgroundColor: 'rgba(0, 122, 255, 0.12)',
-    paddingHorizontal: 10,
-    paddingVertical: 3,
-    borderRadius: Radius.full,
-  },
-  vaultBadgeText: {
-    fontSize: 11,
-    fontWeight: '600',
-    color: Colors.systemBlue,
-  },
-  subtitle: {
-    fontSize: 12,
-    color: Colors.systemGray,
-    marginTop: 2,
-  },
-  oracleCard: {
-    backgroundColor: Colors.glassSurface,
-    borderRadius: Radius.xl,
-    padding: 18,
-    borderWidth: 1,
-    borderColor: 'rgba(0, 122, 255, 0.35)',
-    marginBottom: 20,
-    shadowColor: Colors.systemBlue,
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.2,
-    shadowRadius: 18,
-  },
-  oracleHeader: {
+  heroHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: 10,
   },
-  oracleHeaderLeft: {
+  statusBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
-  },
-  oracleLabel: {
-    fontSize: 10,
-    fontWeight: '700',
-    letterSpacing: 0.8,
-    color: Colors.systemBlue,
-  },
-  groundedTag: {
-    backgroundColor: 'rgba(52, 199, 89, 0.15)',
+    backgroundColor: Colors.accentGoldSoft,
     paddingHorizontal: 8,
-    paddingVertical: 2,
+    paddingVertical: 3,
     borderRadius: Radius.full,
   },
-  groundedText: {
+  statusBadgeText: {
     fontSize: 10,
-    fontWeight: '600',
-    color: Colors.systemGreen,
-  },
-  oracleTitle: {
-    fontSize: 18,
     fontWeight: '700',
+    letterSpacing: 0.6,
+    color: Colors.accentGold,
+  },
+  vaultCounter: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: Colors.textTertiary,
+  },
+  heroTitle: {
+    fontSize: 20,
+    fontWeight: '800',
+    letterSpacing: -0.4,
     color: Colors.textPrimary,
-    letterSpacing: -0.3,
     marginBottom: 6,
   },
-  oracleDesc: {
+  heroSub: {
     fontSize: 13,
     lineHeight: 19,
     color: Colors.textSecondary,
-    marginBottom: 12,
   },
-  oracleReasonTag: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.04)',
-    padding: 10,
-    borderRadius: Radius.md,
-    marginBottom: 14,
+  filterScroll: {
+    marginBottom: 20,
   },
-  oracleReasonText: {
-    flex: 1,
-    fontSize: 11,
-    fontWeight: '500',
-    color: Colors.systemGray,
-  },
-  oracleBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 6,
-    backgroundColor: Colors.systemBlue,
-    paddingVertical: 12,
-    borderRadius: Radius.full,
-  },
-  oracleBtnText: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#FFFFFF',
-  },
-  chipsScroll: {
-    marginBottom: 16,
-  },
-  chipsContent: {
+  filterContent: {
     gap: 8,
-    paddingRight: 10,
+    paddingVertical: 4,
   },
-  chip: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    backgroundColor: 'rgba(255, 255, 255, 0.06)',
-    paddingHorizontal: 13,
-    paddingVertical: 8,
+  filterPill: {
+    paddingHorizontal: 14,
+    paddingVertical: 7,
     borderRadius: Radius.full,
-    borderWidth: 0.5,
-    borderColor: 'rgba(255, 255, 255, 0.12)',
+    backgroundColor: Colors.secondaryBackground,
+    borderWidth: 1,
+    borderColor: Colors.borderHairline,
   },
-  chipActive: {
-    backgroundColor: 'rgba(255, 255, 255, 0.20)',
-    borderColor: '#FFFFFF',
+  filterPillActive: {
+    backgroundColor: Colors.textPrimary,
+    borderColor: Colors.textPrimary,
   },
-  chipText: {
-    fontSize: 13,
-    fontWeight: '500',
-    color: Colors.systemGray,
-  },
-  chipTextActive: {
-    color: '#FFFFFF',
+  filterPillText: {
+    fontSize: 12,
     fontWeight: '600',
+    color: Colors.textSecondary,
   },
-  countBadge: {
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
-    paddingHorizontal: 6,
-    paddingVertical: 1,
-    borderRadius: Radius.full,
-  },
-  countBadgeActive: {
-    backgroundColor: 'rgba(0, 0, 0, 0.3)',
-  },
-  countText: {
-    fontSize: 10,
-    fontWeight: '600',
-    color: Colors.systemGray,
-  },
-  countTextActive: {
-    color: '#FFFFFF',
+  filterPillTextActive: {
+    color: Colors.textInverted,
   },
   itemsList: {
-    gap: 12,
+    gap: 16,
   },
   itemCard: {
-    backgroundColor: Colors.glassSurface,
-    borderRadius: Radius.xl,
-    padding: 16,
-    borderWidth: 1,
-    borderColor: Colors.glassBorder,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 12,
+    padding: 18,
   },
-  itemHeader: {
+  itemTopRow: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 8,
+    alignItems: 'flex-start',
+    marginBottom: 14,
+  },
+  checkboxTouch: {
+    marginRight: 12,
+    marginTop: 2,
+  },
+  itemTitleContainer: {
+    flex: 1,
   },
   itemCategoryRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
+    marginBottom: 4,
   },
-  iconCircle: {
-    width: 24,
-    height: 24,
-    borderRadius: Radius.full,
-    backgroundColor: 'rgba(255, 255, 255, 0.06)',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  categoryLabel: {
+  itemCategoryLabel: {
     fontSize: 10,
     fontWeight: '700',
     letterSpacing: 0.6,
-    color: Colors.systemGray,
-  },
-  targetBadge: {
-    backgroundColor: 'rgba(255, 45, 85, 0.12)',
-    paddingHorizontal: 8,
-    paddingVertical: 2,
-    borderRadius: Radius.full,
-  },
-  targetBadgeText: {
-    fontSize: 9,
-    fontWeight: '700',
-    letterSpacing: 0.4,
-    color: Colors.systemPink,
+    color: Colors.textTertiary,
   },
   itemName: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '700',
     color: Colors.textPrimary,
-    marginBottom: 8,
     letterSpacing: -0.2,
   },
-  quoteBubble: {
-    flexDirection: 'row',
-    backgroundColor: 'rgba(255, 255, 255, 0.03)',
+  itemNameCompleted: {
+    textDecorationLine: 'line-through',
+    color: Colors.textTertiary,
+  },
+  receiptContainer: {
+    backgroundColor: Colors.secondaryBackground,
     borderRadius: Radius.md,
-    padding: 10,
-    marginBottom: 10,
-    borderLeftWidth: 2,
-    borderLeftColor: Colors.systemBlue,
+    padding: 12,
+    borderWidth: 1,
+    borderColor: Colors.borderHairline,
   },
-  quoteIcon: {
-    marginRight: 6,
-    marginTop: 2,
-  },
-  quoteText: {
-    flex: 1,
-    fontSize: 12,
-    fontStyle: 'italic',
-    color: Colors.textSecondary,
-    lineHeight: 17,
-  },
-  itemFooter: {
+  receiptHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
-    borderTopWidth: 0.5,
-    borderTopColor: 'rgba(255, 255, 255, 0.08)',
-    paddingTop: 8,
+    marginBottom: 4,
   },
-  timestampText: {
-    fontSize: 11,
-    color: Colors.systemGray,
+  receiptTag: {
+    fontSize: 9,
+    fontWeight: '700',
+    letterSpacing: 0.6,
+    color: Colors.accentGold,
   },
-  statusIndicator: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
+  receiptTimestamp: {
+    fontSize: 10,
+    color: Colors.textTertiary,
   },
-  statusText: {
-    fontSize: 11,
-    fontWeight: '500',
-    color: Colors.systemGreen,
+  receiptQuote: {
+    fontSize: 13,
+    fontStyle: 'italic',
+    lineHeight: 18,
+    color: Colors.textSecondary,
   },
 });

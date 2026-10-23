@@ -40,6 +40,19 @@ The project maintains 5 core documentation files in the repository root:
 5. **[`IDEAS.md`](file:///c:/Users/DELL/gen%20ai/Assify/IDEAS.md)** — Product backlog, virality hooks, monetization ideas, and psychological AI features.
 
 ---
+When reviewing or improving UI/UX designs, follow the Apple HIG based design review process:
+
+Read SKILL.md in full. It defines Apple's eight design principles, the five audit lenses (accessibility, platform conventions, visual design and craft, interaction, writing), the report format, and the design improvement process.
+Read references/hig-lookup.md to find which guideline files cover the topic.
+Load references/hig/accessibility.md, layout.md, typography.md, color.md, and the platform overview (designing-for-ios.md or designing-for-macos.md), plus references/cross-platform.md unless the app is SwiftUI, UIKit, or AppKit, then 3 to 6 files for what is on screen. Never load the whole directory.
+Cite every recommendation as file.md › Heading with a short quote.
+Use the user's framework vocabulary (Flutter, React Native, Tauri, Electron, SwiftUI, UIKit, AppKit).
+Tag each finding Critical, High, Medium, or Low, and use the report format from SKILL.md: Summary, Critical, Improvements, Craft notes, What works, Platform notes.
+Cite a guideline or label the point as your own judgment; never invent one. A strong design gets a short review, not a list of manufactured findings.
+When reviewing code rather than screenshots, or any app that takes Apple Pay, follow references/code-audit.md and cite path:line beside each guideline.
+Trigger this process when the user asks to: review a design, audit UI/UX, check accessibility, improve a layout, adapt an app for iPhone Duo, implement Liquid Glass or glassmorphism, make a design less generic, review an app icon, widget, or Live Activity, audit a codebase, check an Apple Pay checkout, or evaluate any visual or interaction design.
+---
+
 
 ## 🛠️ Tech Stack & Standards
 

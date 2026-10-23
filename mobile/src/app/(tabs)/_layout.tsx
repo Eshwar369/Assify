@@ -1,49 +1,124 @@
 import React from 'react';
 import { Tabs } from 'expo-router';
 import { View, Platform, StyleSheet } from 'react-native';
-import { Flame, Sparkles, MessageSquareQuote, GitCommit } from 'lucide-react-native';
-import { Colors } from '../../constants/theme';
+import { BlurView } from 'expo-blur';
+import * as Haptics from 'expo-haptics';
+import { Compass, Bot, TrendingUp, Bookmark } from 'lucide-react-native';
+import { Colors, Radius, Typography } from '@/constants/theme';
 
 export default function TabsLayout() {
   return (
     <Tabs
       screenOptions={{
         headerShown: false,
-        tabBarActiveTintColor: Colors.systemBlue,
-        tabBarInactiveTintColor: Colors.systemGray,
+        tabBarActiveTintColor: Colors.textPrimary,
+        tabBarInactiveTintColor: Colors.textTertiary,
+        tabBarBackground: () => (
+          <View style={styles.dockWrapper}>
+            {Platform.OS === 'ios' ? (
+              <BlurView
+                intensity={80}
+                tint="light"
+                style={StyleSheet.absoluteFill}
+              />
+            ) : Platform.OS === 'web' ? (
+              <View style={[StyleSheet.absoluteFill, styles.webDockBg]} />
+            ) : (
+              <View style={[StyleSheet.absoluteFill, styles.androidDockBg]} />
+            )}
+            {/* Top Sub-pixel Hairline */}
+            <View style={styles.topHairline} />
+          </View>
+        ),
         tabBarStyle: {
-          backgroundColor: Colors.glassDock,
-          borderTopColor: 'rgba(255, 255, 255, 0.12)',
-          borderTopWidth: 0.5,
-          height: Platform.OS === 'ios' ? 88 : 66,
+          position: 'absolute',
+          backgroundColor: 'transparent',
+          borderTopWidth: 0,
+          elevation: 0,
+          height: Platform.OS === 'ios' ? 84 : Platform.OS === 'web' ? 68 : 64,
           paddingTop: 8,
-          paddingBottom: Platform.OS === 'ios' ? 30 : 10,
-          elevation: 16,
-          shadowColor: '#000',
-          shadowOffset: { width: 0, height: -4 },
-          shadowOpacity: 0.35,
-          shadowRadius: 16,
+          paddingBottom: Platform.OS === 'ios' ? 24 : 10,
           ...(Platform.OS === 'web'
             ? {
-                backdropFilter: 'blur(30px) saturate(180%)',
-                WebkitBackdropFilter: 'blur(30px) saturate(180%)',
+                left: 0,
+                right: 0,
+                maxWidth: 440,
+                marginHorizontal: 'auto',
+                bottom: 16,
+                borderRadius: 36,
+                overflow: 'hidden',
+                borderWidth: 1,
+                borderColor: Colors.borderCard,
+                boxShadow: '0 12px 36px rgba(0, 0, 0, 0.08)',
               }
             : {}),
         },
         tabBarLabelStyle: {
-          fontSize: 10,
+          fontSize: 10.5,
           fontWeight: '600',
-          letterSpacing: -0.1,
+          letterSpacing: 0.1,
           marginTop: 2,
         },
-      }}>
+      }}
+    >
       <Tabs.Screen
         name="index"
         options={{
-          title: 'Profiler',
+          title: 'Radar',
           tabBarIcon: ({ color, focused }) => (
-            <Flame color={color} size={20} strokeWidth={focused ? 2.4 : 1.8} />
+            <View style={[styles.iconContainer, focused && styles.activeIconContainer]}>
+              <Compass
+                color={focused ? Colors.textPrimary : color}
+                size={21}
+                strokeWidth={focused ? 2.4 : 1.8}
+              />
+            </View>
           ),
+        }}
+        listeners={{
+          tabPress: () => {
+            if (Platform.OS !== 'web') Haptics.selectionAsync();
+          },
+        }}
+      />
+      <Tabs.Screen
+        name="coach"
+        options={{
+          title: 'Doctor Delulu',
+          tabBarIcon: ({ color, focused }) => (
+            <View style={[styles.iconContainer, focused && styles.activeIconContainer]}>
+              <Bot
+                color={focused ? Colors.textPrimary : color}
+                size={21}
+                strokeWidth={focused ? 2.4 : 1.8}
+              />
+            </View>
+          ),
+        }}
+        listeners={{
+          tabPress: () => {
+            if (Platform.OS !== 'web') Haptics.selectionAsync();
+          },
+        }}
+      />
+      <Tabs.Screen
+        name="timeline"
+        options={{
+          title: 'Fever Chart',
+          tabBarIcon: ({ color, focused }) => (
+            <View style={[styles.iconContainer, focused && styles.activeIconContainer]}>
+              <TrendingUp
+                color={focused ? Colors.textPrimary : color}
+                size={21}
+                strokeWidth={focused ? 2.4 : 1.8}
+              />
+            </View>
+          ),
+        }}
+        listeners={{
+          tabPress: () => {
+            if (Platform.OS !== 'web') Haptics.selectionAsync();
+          },
         }}
       />
       <Tabs.Screen
@@ -51,28 +126,59 @@ export default function TabsLayout() {
         options={{
           title: 'The Keep',
           tabBarIcon: ({ color, focused }) => (
-            <Sparkles color={color} size={20} strokeWidth={focused ? 2.4 : 1.8} />
+            <View style={[styles.iconContainer, focused && styles.activeIconContainer]}>
+              <Bookmark
+                color={focused ? Colors.textPrimary : color}
+                size={21}
+                strokeWidth={focused ? 2.4 : 1.8}
+              />
+            </View>
           ),
         }}
-      />
-      <Tabs.Screen
-        name="coach"
-        options={{
-          title: 'Coach',
-          tabBarIcon: ({ color, focused }) => (
-            <MessageSquareQuote color={color} size={20} strokeWidth={focused ? 2.4 : 1.8} />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="timeline"
-        options={{
-          title: 'Timeline',
-          tabBarIcon: ({ color, focused }) => (
-            <GitCommit color={color} size={20} strokeWidth={focused ? 2.4 : 1.8} />
-          ),
+        listeners={{
+          tabPress: () => {
+            if (Platform.OS !== 'web') Haptics.selectionAsync();
+          },
         }}
       />
     </Tabs>
   );
 }
+
+const styles = StyleSheet.create({
+  dockWrapper: {
+    ...StyleSheet.absoluteFill,
+    overflow: 'hidden',
+    ...(Platform.OS === 'web'
+      ? {
+          borderRadius: 36,
+        }
+      : {}),
+  },
+  webDockBg: {
+    backgroundColor: 'rgba(255, 255, 255, 0.90)',
+    backdropFilter: 'blur(30px) saturate(180%)',
+    WebkitBackdropFilter: 'blur(30px) saturate(180%)',
+  } as any,
+  androidDockBg: {
+    backgroundColor: '#FFFFFF',
+  },
+  topHairline: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    height: 1,
+    backgroundColor: Colors.borderHairline,
+  },
+  iconContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+  },
+  activeIconContainer: {
+    backgroundColor: Colors.secondaryBackground,
+  },
+});

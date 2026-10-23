@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import {
   View,
   Text,
@@ -9,315 +9,494 @@ import {
   SafeAreaView,
   KeyboardAvoidingView,
   Platform,
-  Share,
 } from 'react-native';
 import * as Haptics from 'expo-haptics';
 import {
   Send,
   Bot,
   Sparkles,
-  User,
-  Flame,
-  Brain,
-  Ghost,
+  Zap,
   Copy,
-  ChevronDown,
-  ChevronUp,
+  Check,
+  Shield,
+  Flame,
+  ArrowRight,
+  MessageSquare,
 } from 'lucide-react-native';
-import { Colors, Radius, Typography } from '../../constants/theme';
 
-interface Message {
+import { Colors, Radius, Typography, Spacing } from '@/constants/theme';
+import { AppHeader } from '@/components/ui/AppHeader';
+import { AppleElevatedCard } from '@/components/ui/AppleElevatedCard';
+
+interface ChatMessage {
   id: string;
   sender: 'user' | 'coach';
   text: string;
   timestamp: string;
 }
 
-const INITIAL_MESSAGES: Message[] = [
+interface GhostReplyOption {
+  id: string;
+  category: string;
+  title: string;
+  replyText: string;
+  strategy: string;
+  toneTag: string;
+  toneColor: string;
+}
+
+const INITIAL_MESSAGES: ChatMessage[] = [
   {
     id: '1',
     sender: 'coach',
-    text: "I am Doctor Assify. I have full forensic memory of your 39,154 messages with Sleepless Zombiee, her 6,481 double texts, and that 0.5-minute response speed. What are we strategizing today?",
+    text: "Doctor Delulu online. I have full memory of your 14,821 messages, your 81% initiation ratio, and that 4-hour reply lag. What conversational crisis are we breaking down today?",
     timestamp: 'Just now',
   },
 ];
 
-const GHOST_TRIAD = [
+const DEFAULT_TRIAD: GhostReplyOption[] = [
   {
-    title: '⚡ RIZZ / WITTY',
-    text: "Careful, if you double-text any faster WhatsApp is going to charge you an overtime fee 😂",
-    rationale: 'Teases her rapid-fire habit while maintaining high-value playful dominance.',
+    id: 'opt-1',
+    category: 'THE MIRROR',
+    title: 'High-Value Stoic',
+    replyText: 'Sounds good, let me know when you figure out your schedule.',
+    strategy:
+      'Matches her exact low-investment energy. Zero exclamation marks, zero desperation. Refuses to chase.',
+    toneTag: 'FRAME CONTROL',
+    toneColor: Colors.textPrimary,
   },
   {
-    title: '🛡️ THE CALM ANCHOR',
-    text: "Sounds good, let me know by 7 so I can lock in my dinner plans.",
-    rationale: 'Draws a clear boundary without passive aggression.',
+    id: 'opt-2',
+    category: 'THE DISRUPTOR',
+    title: 'Playful Defuser',
+    replyText: 'Careful, if you take any longer to reply WhatsApp is going to archive our chat for inactivity 😂',
+    strategy:
+      'Humorously calls out the 6-hour delay while keeping the dynamic light, teasing, and flirty.',
+    toneTag: 'WITTY BANTER',
+    toneColor: Colors.accentRose,
   },
   {
-    title: '🔥 UNHINGED ROAST',
-    text: "Are you practicing for the DM Olympics or do you just miss me that much?",
-    rationale: 'Directly calls out the romantic denial with zero shame.',
+    id: 'opt-3',
+    category: 'THE CLOSE',
+    title: 'Decisive Cut-Through',
+    replyText: 'Too busy for a 3-day text exchange. I’m grabbing drinks tomorrow at 8 — join me or stay a myth.',
+    strategy:
+      'Bypasses endless messaging banter and tests immediate romantic compliance in the real world.',
+    toneTag: 'HIGH EQ CLOSE',
+    toneColor: Colors.accentGold,
   },
 ];
 
 const QUICK_PROMPTS = [
-  'Why does she double-text so much?',
-  'Craft a witty reply to keep the banter alive',
-  'Is this just friendly sparring or actual feelings?',
+  'Why did she switch from 4m to 6h delay?',
+  'Am I being breadcrumbed or actually busy?',
+  'How do I regain leverage without playing games?',
+  'Analyze her last voice note for subtext',
 ];
 
 export default function CoachScreen() {
-  const [messages, setMessages] = useState<Message[]>(INITIAL_MESSAGES);
-  const [input, setInput] = useState('');
+  const [activeTab, setActiveTab] = useState<'coach' | 'ghost'>('coach');
+  const [messages, setMessages] = useState<ChatMessage[]>(INITIAL_MESSAGES);
+  const [inputMessage, setInputMessage] = useState('');
   const [isTyping, setIsTyping] = useState(false);
-  const [vibeMode, setVibeMode] = useState<'therapy' | 'unhinged'>('unhinged');
-  const [showGhostWriter, setShowGhostWriter] = useState(false);
-  const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
 
-  const sendMessage = (textToSend?: string) => {
-    const text = (textToSend || input).trim();
-    if (!text) return;
+  // Ghost Writer state
+  const [receivedText, setReceivedText] = useState('');
+  const [triadOptions, setTriadOptions] = useState<GhostReplyOption[]>(DEFAULT_TRIAD);
+  const [copiedId, setCopiedId] = useState<string | null>(null);
+
+  const scrollViewRef = useRef<any>(null);
+
+  const handleTabSwitch = (tab: 'coach' | 'ghost') => {
+    if (Platform.OS !== 'web') {
+      try {
+        Haptics.selectionAsync();
+      } catch {
+        // Haptics fallback
+      }
+    }
+    setActiveTab(tab);
+  };
+
+  const handleSendCoach = () => {
+    if (!inputMessage.trim()) return;
 
     if (Platform.OS !== 'web') {
-      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      try {
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      } catch {
+        // Haptics fallback
+      }
     }
 
-    const userMsg: Message = {
+    const userMsg: ChatMessage = {
       id: Date.now().toString(),
       sender: 'user',
-      text,
-      timestamp: 'Now',
+      text: inputMessage.trim(),
+      timestamp: 'Just now',
     };
 
     setMessages((prev) => [...prev, userMsg]);
-    setInput('');
+    setInputMessage('');
     setIsTyping(true);
 
     setTimeout(() => {
-      let replyText = '';
-      if (vibeMode === 'unhinged') {
-        if (text.toLowerCase().includes('double-text')) {
-          replyText =
-            "She's sent 6,481 double texts! That's not breadcrumbing; that's an industrial bakery. She treats your DM like a live stream chat. Do not reply instantly—let her stew for 15 minutes.";
-        } else if (text.toLowerCase().includes('witty') || text.toLowerCase().includes('reply')) {
-          replyText =
-            "Unhinged Calibration:\n'If texting were an Olympic sport, you'd already have 3 gold medals and a sponsorship deal 🥇.'\n\nPsychological Roast: Teases her addiction while keeping your frame untouchable.";
-        } else {
-          replyText =
-            "Look, you two have been circling each other across 39,000 texts like two stubborn cats. Either confess your feelings or accept that you're full-time sparring partners in the Delulu Coliseum.";
-        }
-      } else {
-        if (text.toLowerCase().includes('double-text')) {
-          replyText =
-            "Her high double-text volume (6,481 instances) stems from an anxious-leaning communication style. She uses rapid messaging to secure connection reassurance. Respond with warm consistency rather than withdrawal.";
-        } else if (text.toLowerCase().includes('witty') || text.toLowerCase().includes('reply')) {
-          replyText =
-            "Therapy Calibration:\n'Always enjoy our banter, but take your time—no rush at all!'\n\nTherapeutic Rationale: Creates a safe emotional space that relieves attachment anxiety.";
-        } else {
-          replyText =
-            "Healthy relationships require mutual clarity. When you both rely heavily on humor to shield vulnerability, emotional growth stalls. Consider having an honest conversation outside of WhatsApp.";
+      scrollViewRef.current?.scrollToEnd({ animated: true });
+    }, 100);
+
+    setTimeout(() => {
+      if (Platform.OS !== 'web') {
+        try {
+          Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+        } catch {
+          // Haptics fallback
         }
       }
+      setIsTyping(false);
 
-      const coachMsg: Message = {
+      const botMsg: ChatMessage = {
         id: (Date.now() + 1).toString(),
         sender: 'coach',
-        text: replyText,
+        text: `Here is the raw truth: You are over-indexing on her recent latency. When a contact takes 4+ hours, sending an immediate follow-up lowers your perceived value by 40%. The tactical move is to hold your ground and let the silence breathe.`,
         timestamp: 'Just now',
       };
-      setMessages((prev) => [...prev, coachMsg]);
-      setIsTyping(false);
-    }, 1000);
+
+      setMessages((prev) => [...prev, botMsg]);
+      setTimeout(() => {
+        scrollViewRef.current?.scrollToEnd({ animated: true });
+      }, 100);
+    }, 1100);
   };
 
-  const handleCopyTriad = async (text: string, index: number) => {
+  const handleCopyReply = (opt: GhostReplyOption) => {
     if (Platform.OS !== 'web') {
-      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      try {
+        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      } catch {
+        // Haptics fallback
+      }
     }
-    setCopiedIndex(index);
-    setTimeout(() => setCopiedIndex(null), 1800);
-    try {
-      await Share.share({ message: text });
-    } catch (err) {
-      console.error(err);
+    setCopiedId(opt.id);
+    setTimeout(() => setCopiedId(null), 2000);
+  };
+
+  const handleGenerateGhost = () => {
+    if (Platform.OS !== 'web') {
+      try {
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+      } catch {
+        // Haptics fallback
+      }
+    }
+
+    const customText = receivedText.trim();
+    if (customText) {
+      setTriadOptions([
+        {
+          id: 'opt-gen-1',
+          category: 'THE MIRROR',
+          title: 'Frame Equalizer',
+          replyText: `Got it. Let me know when you are free next week.`,
+          strategy: `In response to "${customText.slice(0, 30)}...": Matches coldness with respectful detachment.`,
+          toneTag: 'STOIC DETACHMENT',
+          toneColor: Colors.textPrimary,
+        },
+        {
+          id: 'opt-gen-2',
+          category: 'THE DISRUPTOR',
+          title: 'Playful Subversion',
+          replyText: `That sounds like an excuse someone with terrible taste in cocktails would make 😂`,
+          strategy: 'Re-establishes playful frame dominance instead of apologizing or begging.',
+          toneTag: 'TEASING BANTER',
+          toneColor: Colors.accentRose,
+        },
+        {
+          id: 'opt-gen-3',
+          category: 'THE CLOSE',
+          title: 'Decisive Pivot',
+          replyText: `Let's skip the 20-question texting game. Grab dinner Thursday at 7:30?`,
+          strategy: 'Forces binary clarity: either she accepts a real-world date or you save your time.',
+          toneTag: 'HIGH EQ CLOSE',
+          toneColor: Colors.accentGold,
+        },
+      ]);
     }
   };
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <KeyboardAvoidingView
-        style={styles.container}
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-        {/* Apple Header */}
-        <View style={styles.header}>
-          <View>
-            <View style={styles.brandRow}>
-              <Bot size={20} color={Colors.systemBlue} />
-              <Text style={styles.headerTitle}>Doctor Assify</Text>
-            </View>
-            <Text style={styles.headerSubtitle}>
-              Tactical Relationship Wingman • 39k Texts Grounding
-            </Text>
-          </View>
+      <View style={styles.desktopCanvas}>
+        <AppHeader
+          title="Tactics"
+          subtitle="Doctor Delulu & Ghost Writer"
+          activePartner="Sarah"
+        />
 
-          {/* Apple Segmented Toggle */}
-          <View style={styles.vibeToggle}>
-            <TouchableOpacity
-              onPress={() => setVibeMode('therapy')}
-              style={[
-                styles.vibeBtn,
-                vibeMode === 'therapy' && styles.vibeBtnActiveTherapy,
-              ]}>
-              <Brain
-                size={13}
-                color={vibeMode === 'therapy' ? '#FFFFFF' : Colors.systemGray}
-              />
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              onPress={() => setVibeMode('unhinged')}
-              style={[
-                styles.vibeBtn,
-                vibeMode === 'unhinged' && styles.vibeBtnActiveUnhinged,
-              ]}>
-              <Flame
-                size={13}
-                color={vibeMode === 'unhinged' ? '#FFFFFF' : Colors.systemGray}
-              />
-            </TouchableOpacity>
-          </View>
-        </View>
-
-        {/* Ghost Writer Dropdown Drawer Banner */}
-        <TouchableOpacity
-          style={styles.ghostBanner}
-          activeOpacity={0.82}
-          onPress={() => setShowGhostWriter(!showGhostWriter)}>
-          <View style={styles.ghostBannerLeft}>
-            <Ghost size={15} color={Colors.systemBlue} />
-            <Text style={styles.ghostBannerText}>GHOST WRITER: 3-REPLY CALIBRATOR</Text>
-          </View>
-          {showGhostWriter ? (
-            <ChevronUp size={16} color={Colors.systemGray} />
-          ) : (
-            <ChevronDown size={16} color={Colors.systemGray} />
-          )}
-        </TouchableOpacity>
-
-        {/* Ghost Writer Triad Cards */}
-        {showGhostWriter ? (
-          <View style={styles.ghostDrawer}>
-            {GHOST_TRIAD.map((item, idx) => (
-              <View key={idx} style={styles.triadCard}>
-                <View style={styles.triadHeader}>
-                  <Text style={styles.triadTitle}>{item.title}</Text>
-                  <TouchableOpacity
-                    style={styles.copyBtn}
-                    onPress={() => handleCopyTriad(item.text, idx)}>
-                    <Copy size={11} color="#FFFFFF" />
-                    <Text style={styles.copyBtnText}>
-                      {copiedIndex === idx ? 'COPIED' : 'COPY'}
-                    </Text>
-                  </TouchableOpacity>
-                </View>
-                <Text style={styles.triadText}>"{item.text}"</Text>
-                <Text style={styles.triadRationale}>{item.rationale}</Text>
-              </View>
-            ))}
-          </View>
-        ) : null}
-
-        {/* Messages Stream */}
-        <ScrollView
-          style={styles.messagesScroll}
-          contentContainerStyle={styles.messagesContent}
-          showsVerticalScrollIndicator={false}>
-          {messages.map((msg) => {
-            const isCoach = msg.sender === 'coach';
-            return (
-              <View
-                key={msg.id}
-                style={[
-                  styles.messageRow,
-                  isCoach ? styles.coachRow : styles.userRow,
-                ]}>
-                {isCoach ? (
-                  <View style={styles.coachAvatar}>
-                    <Bot size={13} color="#FFFFFF" />
-                  </View>
-                ) : null}
-
-                <View
-                  style={[
-                    styles.bubble,
-                    isCoach ? styles.coachBubble : styles.userBubble,
-                  ]}>
-                  <Text
-                    style={[
-                      styles.bubbleText,
-                      isCoach ? styles.coachText : styles.userText,
-                    ]}>
-                    {msg.text}
-                  </Text>
-                  <Text style={styles.timestamp}>{msg.timestamp}</Text>
-                </View>
-
-                {!isCoach ? (
-                  <View style={styles.userAvatar}>
-                    <User size={13} color="#FFFFFF" />
-                  </View>
-                ) : null}
-              </View>
-            );
-          })}
-
-          {isTyping ? (
-            <View style={[styles.messageRow, styles.coachRow]}>
-              <View style={styles.coachAvatar}>
-                <Bot size={13} color="#FFFFFF" />
-              </View>
-              <View style={[styles.bubble, styles.coachBubble, { paddingVertical: 10 }]}>
-                <Text style={styles.typingIndicator}>Doctor Assify is calibrating...</Text>
-              </View>
-            </View>
-          ) : null}
-        </ScrollView>
-
-        {/* Quick Suggestion Chips */}
-        <View style={styles.quickPrompts}>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-            {QUICK_PROMPTS.map((prompt, i) => (
+        <KeyboardAvoidingView
+          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+          style={styles.keyboardContainer}
+        >
+          {/* Segmented Switcher Pill */}
+          <View style={styles.switcherContainer}>
+            <View style={styles.switcherPill}>
               <TouchableOpacity
-                key={i}
-                style={styles.promptChip}
-                activeOpacity={0.8}
-                onPress={() => sendMessage(prompt)}>
-                <Sparkles size={11} color={Colors.systemBlue} />
-                <Text style={styles.promptText}>{prompt}</Text>
+                activeOpacity={0.9}
+                onPress={() => handleTabSwitch('coach')}
+                style={[
+                  styles.switcherTab,
+                  activeTab === 'coach' && styles.switcherTabActive,
+                ]}
+              >
+                <Bot
+                  size={14}
+                  color={activeTab === 'coach' ? Colors.textPrimary : Colors.textTertiary}
+                  style={{ marginRight: 6 }}
+                />
+                <Text
+                  style={[
+                    styles.switcherText,
+                    activeTab === 'coach' && styles.switcherTextActive,
+                  ]}
+                >
+                  Doctor Delulu
+                </Text>
               </TouchableOpacity>
-            ))}
-          </ScrollView>
-        </View>
 
-        {/* Apple Input Bar */}
-        <View style={styles.inputContainer}>
-          <TextInput
-            style={styles.input}
-            value={input}
-            onChangeText={setInput}
-            placeholder="Ask Doctor Assify anything..."
-            placeholderTextColor={Colors.systemGray}
-            multiline
-          />
-          <TouchableOpacity
-            style={[styles.sendButton, !input.trim() && styles.sendButtonDisabled]}
-            disabled={!input.trim()}
-            activeOpacity={0.8}
-            onPress={() => sendMessage()}>
-            <Send size={15} color="#FFFFFF" />
-          </TouchableOpacity>
-        </View>
-      </KeyboardAvoidingView>
+              <TouchableOpacity
+                activeOpacity={0.9}
+                onPress={() => handleTabSwitch('ghost')}
+                style={[
+                  styles.switcherTab,
+                  activeTab === 'ghost' && styles.switcherTabActive,
+                ]}
+              >
+                <Zap
+                  size={14}
+                  color={activeTab === 'ghost' ? Colors.textPrimary : Colors.textTertiary}
+                  style={{ marginRight: 6 }}
+                />
+                <Text
+                  style={[
+                    styles.switcherText,
+                    activeTab === 'ghost' && styles.switcherTextActive,
+                  ]}
+                >
+                  Ghost Writer
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+
+          {/* TAB 1: DOCTOR DELULU INTERACTIVE CHAT */}
+          {activeTab === 'coach' ? (
+            <View style={styles.tabContent}>
+              <ScrollView
+                ref={scrollViewRef}
+                style={styles.chatScroll}
+                contentContainerStyle={styles.chatScrollContent}
+                showsVerticalScrollIndicator={false}
+              >
+                {/* Active Tension Card */}
+                <View style={styles.tensionCard}>
+                  <View style={styles.tensionBadge}>
+                    <Shield size={12} color={Colors.accentGold} style={{ marginRight: 4 }} />
+                    <Text style={styles.tensionBadgeText}>CURRENT ACTIVE CONTEXT</Text>
+                  </View>
+                  <Text style={styles.tensionTitle}>4-Hour Response Lag Detected</Text>
+                  <Text style={styles.tensionSub}>
+                    Sarah's response latency increased by 180% since 10:00 PM. Frame vulnerability high.
+                  </Text>
+                </View>
+
+                {/* Chat Bubbles */}
+                {messages.map((msg) => {
+                  const isUser = msg.sender === 'user';
+                  return (
+                    <View
+                      key={msg.id}
+                      style={[
+                        styles.messageRow,
+                        isUser ? styles.messageRowUser : styles.messageRowCoach,
+                      ]}
+                    >
+                      {!isUser && (
+                        <View style={styles.coachAvatar}>
+                          <Bot size={15} color={Colors.accentGold} />
+                        </View>
+                      )}
+
+                      <View
+                        style={[
+                          styles.bubble,
+                          isUser ? styles.userBubble : styles.coachBubble,
+                        ]}
+                      >
+                        <Text
+                          style={[
+                            styles.bubbleText,
+                            isUser ? styles.userBubbleText : styles.coachBubbleText,
+                          ]}
+                        >
+                          {msg.text}
+                        </Text>
+                        <Text
+                          style={[
+                            styles.bubbleTimestamp,
+                            isUser ? styles.userTimestamp : styles.coachTimestamp,
+                          ]}
+                        >
+                          {msg.timestamp}
+                        </Text>
+                      </View>
+                    </View>
+                  );
+                })}
+
+                {isTyping && (
+                  <View style={[styles.messageRow, styles.messageRowCoach]}>
+                    <View style={styles.coachAvatar}>
+                      <Bot size={15} color={Colors.accentGold} />
+                    </View>
+                    <View style={[styles.bubble, styles.coachBubble, styles.typingBubble]}>
+                      <Text style={styles.typingText}>Doctor Delulu is analyzing subtext...</Text>
+                    </View>
+                  </View>
+                )}
+              </ScrollView>
+
+              {/* Quick Prompt Suggestions */}
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                style={styles.quickPromptsScroll}
+                contentContainerStyle={styles.quickPromptsContent}
+              >
+                {QUICK_PROMPTS.map((prompt, i) => (
+                  <TouchableOpacity
+                    key={i}
+                    activeOpacity={0.8}
+                    onPress={() => setInputMessage(prompt)}
+                    style={styles.promptPill}
+                  >
+                    <Sparkles size={11} color={Colors.accentGold} style={{ marginRight: 5 }} />
+                    <Text style={styles.promptText}>{prompt}</Text>
+                  </TouchableOpacity>
+                ))}
+              </ScrollView>
+
+              {/* Message Input Bar */}
+              <View style={styles.inputContainer}>
+                <TextInput
+                  value={inputMessage}
+                  onChangeText={setInputMessage}
+                  placeholder="Ask Doctor Delulu what to say..."
+                  placeholderTextColor={Colors.textTertiary}
+                  style={styles.textInput}
+                  multiline
+                  onSubmitEditing={handleSendCoach}
+                />
+                <TouchableOpacity
+                  activeOpacity={0.8}
+                  onPress={handleSendCoach}
+                  disabled={!inputMessage.trim()}
+                  style={[
+                    styles.sendButton,
+                    inputMessage.trim() ? styles.sendButtonActive : styles.sendButtonDisabled,
+                  ]}
+                >
+                  <Send
+                    size={16}
+                    color={inputMessage.trim() ? Colors.textInverted : Colors.textTertiary}
+                  />
+                </TouchableOpacity>
+              </View>
+            </View>
+          ) : (
+            /* TAB 2: GHOST WRITER REPLY TRIAD */
+            <ScrollView
+              style={styles.tabContent}
+              contentContainerStyle={styles.ghostScrollContent}
+              showsVerticalScrollIndicator={false}
+            >
+              {/* Context Input Card */}
+              <AppleElevatedCard style={styles.ghostInputCard}>
+                <Text style={styles.ghostInputLabel}>CONFUSING MESSAGE RECEIVED</Text>
+                <TextInput
+                  value={receivedText}
+                  onChangeText={setReceivedText}
+                  placeholder="Paste what she just sent you (e.g. 'Haha yeah maybe next week!')..."
+                  placeholderTextColor={Colors.textTertiary}
+                  style={styles.ghostTextInput}
+                  multiline
+                  numberOfLines={3}
+                />
+                <TouchableOpacity
+                  activeOpacity={0.85}
+                  onPress={handleGenerateGhost}
+                  style={styles.calibrateButton}
+                >
+                  <Sparkles size={14} color={Colors.textInverted} style={{ marginRight: 6 }} />
+                  <Text style={styles.calibrateButtonText}>Generate Calibrated Triad</Text>
+                </TouchableOpacity>
+              </AppleElevatedCard>
+
+              {/* Triad Options Feed */}
+              <Text style={styles.triadSectionTitle}>CALIBRATED TACTICAL REPLIES</Text>
+
+              {triadOptions.map((opt) => {
+                const isCopied = copiedId === opt.id;
+                return (
+                  <AppleElevatedCard key={opt.id} style={styles.triadCard}>
+                    <View style={styles.triadHeader}>
+                      <View style={styles.triadTagRow}>
+                        <View style={styles.toneBadge}>
+                          <Text style={styles.toneBadgeText}>{opt.toneTag}</Text>
+                        </View>
+                        <Text style={styles.triadCategory}>{opt.category}</Text>
+                      </View>
+                      <Text style={styles.triadTitle}>{opt.title}</Text>
+                    </View>
+
+                    {/* Quotation text */}
+                    <View style={styles.replyBox}>
+                      <Text style={styles.replyQuote}>"{opt.replyText}"</Text>
+                    </View>
+
+                    {/* Tactical Strategy */}
+                    <Text style={styles.strategyText}>{opt.strategy}</Text>
+
+                    {/* Action Footer */}
+                    <View style={styles.triadFooter}>
+                      <TouchableOpacity
+                        activeOpacity={0.85}
+                        onPress={() => handleCopyReply(opt)}
+                        style={[
+                          styles.copyButton,
+                          isCopied && styles.copyButtonDone,
+                        ]}
+                      >
+                        {isCopied ? (
+                          <>
+                            <Check size={14} color={Colors.systemGreen} style={{ marginRight: 6 }} />
+                            <Text style={[styles.copyButtonText, { color: Colors.systemGreen }]}>
+                              Copied to Clipboard
+                            </Text>
+                          </>
+                        ) : (
+                          <>
+                            <Copy size={14} color={Colors.textPrimary} style={{ marginRight: 6 }} />
+                            <Text style={styles.copyButtonText}>Copy to Clipboard</Text>
+                          </>
+                        )}
+                      </TouchableOpacity>
+                    </View>
+                  </AppleElevatedCard>
+                );
+              })}
+            </ScrollView>
+          )}
+        </KeyboardAvoidingView>
+      </View>
     </SafeAreaView>
   );
 }
@@ -327,258 +506,369 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: Colors.background,
   },
-  container: {
+  desktopCanvas: {
     flex: 1,
+    width: '100%',
+    maxWidth: 480,
+    alignSelf: 'center',
     backgroundColor: Colors.background,
+    ...Platform.select({
+      web: {
+        borderLeftWidth: 1,
+        borderRightWidth: 1,
+        borderColor: Colors.borderHairline,
+        minHeight: '100vh',
+      } as any,
+    }),
   },
-  header: {
+  keyboardContainer: {
+    flex: 1,
+  },
+  switcherContainer: {
+    paddingHorizontal: Spacing.screenGutter,
+    paddingVertical: 12,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: Colors.borderHairline,
+  },
+  switcherPill: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingTop: Platform.OS === 'android' ? 36 : 14,
-    paddingBottom: 12,
-    borderBottomWidth: 0.5,
-    borderBottomColor: Colors.glassBorder,
-  },
-  brandRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  headerTitle: {
-    fontSize: 22,
-    fontWeight: '700',
-    color: Colors.textPrimary,
-    letterSpacing: -0.3,
-  },
-  headerSubtitle: {
-    fontSize: 11,
-    color: Colors.systemGray,
-    marginTop: 1,
-  },
-  vibeToggle: {
-    flexDirection: 'row',
-    backgroundColor: 'rgba(120, 120, 128, 0.20)',
+    backgroundColor: Colors.secondaryBackground,
     borderRadius: Radius.full,
     padding: 3,
-    borderWidth: 0.5,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
-    gap: 4,
+    borderWidth: 1,
+    borderColor: Colors.borderHairline,
   },
-  vibeBtn: {
-    paddingHorizontal: 10,
-    paddingVertical: 6,
+  switcherTab: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 8,
     borderRadius: Radius.full,
   },
-  vibeBtnActiveTherapy: {
-    backgroundColor: Colors.systemBlue,
+  switcherTabActive: {
+    backgroundColor: '#FFFFFF',
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.08,
+        shadowRadius: 4,
+      },
+      web: {
+        boxShadow: '0 2px 6px rgba(0, 0, 0, 0.06)',
+      } as any,
+    }),
   },
-  vibeBtnActiveUnhinged: {
-    backgroundColor: Colors.systemPink,
+  switcherText: {
+    fontSize: 13,
+    fontWeight: '500',
+    color: Colors.textTertiary,
   },
-  ghostBanner: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    backgroundColor: 'rgba(0, 122, 255, 0.08)',
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    borderBottomWidth: 0.5,
-    borderBottomColor: 'rgba(0, 122, 255, 0.2)',
+  switcherTextActive: {
+    color: Colors.textPrimary,
+    fontWeight: '700',
   },
-  ghostBannerLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
+  tabContent: {
+    flex: 1,
   },
-  ghostBannerText: {
-    fontSize: 11,
-    fontWeight: '600',
-    letterSpacing: 0.6,
-    color: Colors.systemBlue,
+  chatScroll: {
+    flex: 1,
   },
-  ghostDrawer: {
-    backgroundColor: Colors.glassSurface,
-    padding: 14,
-    gap: 10,
-    borderBottomWidth: 0.5,
-    borderBottomColor: Colors.glassBorder,
+  chatScrollContent: {
+    paddingHorizontal: Spacing.screenGutter,
+    paddingTop: 16,
+    paddingBottom: 24,
   },
-  triadCard: {
-    backgroundColor: 'rgba(255, 255, 255, 0.04)',
+  tensionCard: {
+    backgroundColor: Colors.secondaryBackground,
     borderRadius: Radius.lg,
-    padding: 12,
-    borderWidth: 0.5,
-    borderColor: Colors.glassBorder,
+    padding: 16,
+    marginBottom: 20,
+    borderWidth: 1,
+    borderColor: Colors.borderHairline,
   },
-  triadHeader: {
+  tensionBadge: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 6,
+    marginBottom: 4,
   },
-  triadTitle: {
+  tensionBadgeText: {
     fontSize: 10,
     fontWeight: '700',
     letterSpacing: 0.6,
-    color: Colors.systemBlue,
+    color: Colors.accentGold,
   },
-  copyBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    backgroundColor: Colors.systemBlue,
-    paddingHorizontal: 9,
-    paddingVertical: 3,
-    borderRadius: Radius.full,
-  },
-  copyBtnText: {
-    fontSize: 9,
-    fontWeight: '600',
-    color: '#FFFFFF',
-  },
-  triadText: {
-    fontSize: 13,
-    fontWeight: '500',
+  tensionTitle: {
+    fontSize: 15,
+    fontWeight: '700',
     color: Colors.textPrimary,
-    marginBottom: 4,
-    lineHeight: 18,
+    marginBottom: 3,
   },
-  triadRationale: {
-    fontSize: 11,
-    color: Colors.systemGray,
-  },
-  messagesScroll: {
-    flex: 1,
-  },
-  messagesContent: {
-    paddingHorizontal: 16,
-    paddingTop: 16,
-    paddingBottom: 16,
-    gap: 14,
+  tensionSub: {
+    fontSize: 12,
+    lineHeight: 17,
+    color: Colors.textTertiary,
   },
   messageRow: {
     flexDirection: 'row',
-    alignItems: 'flex-end',
-    gap: 8,
+    marginBottom: 16,
+    maxWidth: '85%',
   },
-  coachRow: {
-    justifyContent: 'flex-start',
-  },
-  userRow: {
+  messageRowUser: {
+    alignSelf: 'flex-end',
     justifyContent: 'flex-end',
   },
-  coachAvatar: {
-    width: 28,
-    height: 28,
-    borderRadius: Radius.full,
-    backgroundColor: Colors.systemBlue,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 4,
+  messageRowCoach: {
+    alignSelf: 'flex-start',
+    alignItems: 'flex-start',
   },
-  userAvatar: {
-    width: 28,
-    height: 28,
-    borderRadius: Radius.full,
-    backgroundColor: Colors.systemPink,
+  coachAvatar: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: Colors.secondaryBackground,
+    borderWidth: 1,
+    borderColor: Colors.borderHairline,
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 4,
+    marginRight: 10,
+    marginTop: 2,
   },
   bubble: {
-    maxWidth: '82%',
-    paddingHorizontal: 15,
+    borderRadius: Radius.lg,
+    paddingHorizontal: 16,
     paddingVertical: 12,
-    borderRadius: Radius.xl,
-  },
-  coachBubble: {
-    backgroundColor: 'rgba(255, 255, 255, 0.08)',
-    borderWidth: 0.5,
-    borderColor: 'rgba(255, 255, 255, 0.12)',
-    borderBottomLeftRadius: 4,
-  },
-  userBubble: {
-    backgroundColor: Colors.systemBlue,
-    borderBottomRightRadius: 4,
   },
   bubbleText: {
     fontSize: 14,
-    lineHeight: 20,
+    lineHeight: 21,
   },
-  coachText: {
-    color: Colors.textPrimary,
+  userBubble: {
+    backgroundColor: Colors.textPrimary,
+    borderBottomRightRadius: Radius.xs,
   },
-  userText: {
-    color: '#FFFFFF',
-    fontWeight: '500',
+  coachBubble: {
+    backgroundColor: Colors.secondaryBackground,
+    borderBottomLeftRadius: Radius.xs,
+    borderWidth: 1,
+    borderColor: Colors.borderHairline,
+    flex: 1,
   },
-  timestamp: {
+  userBubbleText: {
+    fontSize: 15,
+    lineHeight: 21,
+    color: Colors.textInverted,
+  },
+  coachBubbleText: {
+    fontSize: 14,
+    lineHeight: 21,
+    color: Colors.textSecondary,
+  },
+  bubbleTimestamp: {
     fontSize: 10,
-    color: Colors.systemGray,
-    marginTop: 4,
+    marginTop: 6,
     alignSelf: 'flex-end',
   },
-  typingIndicator: {
-    fontSize: 12,
-    fontStyle: 'italic',
-    color: Colors.systemGray,
+  userTimestamp: {
+    color: 'rgba(255, 255, 255, 0.50)',
   },
-  quickPrompts: {
+  coachTimestamp: {
+    color: Colors.textTertiary,
+  },
+  typingBubble: {
     paddingVertical: 10,
-    paddingHorizontal: 14,
-    borderTopWidth: 0.5,
-    borderTopColor: Colors.glassBorder,
   },
-  promptChip: {
+  typingText: {
+    fontSize: 13,
+    fontStyle: 'italic',
+    color: Colors.textTertiary,
+  },
+  quickPromptsScroll: {
+    maxHeight: 44,
+  },
+  quickPromptsContent: {
+    paddingHorizontal: Spacing.screenGutter,
+    gap: 8,
+    alignItems: 'center',
+  },
+  promptPill: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
-    backgroundColor: 'rgba(255, 255, 255, 0.06)',
-    paddingHorizontal: 12,
-    paddingVertical: 8,
+    backgroundColor: Colors.secondaryBackground,
     borderRadius: Radius.full,
-    marginRight: 8,
-    borderWidth: 0.5,
-    borderColor: Colors.glassBorder,
+    paddingHorizontal: 12,
+    paddingVertical: 7,
+    borderWidth: 1,
+    borderColor: Colors.borderHairline,
   },
   promptText: {
     fontSize: 12,
-    fontWeight: '500',
+    fontWeight: '600',
     color: Colors.textSecondary,
   },
   inputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 14,
-    paddingVertical: 10,
-    backgroundColor: Colors.glassDock,
-    borderTopWidth: 0.5,
-    borderTopColor: Colors.glassBorder,
-    gap: 10,
+    paddingHorizontal: Spacing.screenGutter,
+    paddingVertical: 12,
+    backgroundColor: Colors.background,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: Colors.borderHairline,
+    marginBottom: Platform.OS === 'web' ? 80 : 70,
   },
-  input: {
+  textInput: {
     flex: 1,
-    backgroundColor: 'rgba(255, 255, 255, 0.06)',
-    borderRadius: Radius.full,
+    minHeight: 40,
+    maxHeight: 90,
+    backgroundColor: Colors.secondaryBackground,
+    borderRadius: Radius.lg,
     paddingHorizontal: 16,
     paddingVertical: 10,
     fontSize: 14,
     color: Colors.textPrimary,
-    maxHeight: 100,
-    borderWidth: 0.5,
-    borderColor: Colors.glassBorder,
+    marginRight: 10,
+    borderWidth: 1,
+    borderColor: Colors.borderHairline,
   },
   sendButton: {
-    width: 38,
-    height: 38,
-    borderRadius: Radius.full,
-    backgroundColor: Colors.systemBlue,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
     alignItems: 'center',
     justifyContent: 'center',
   },
+  sendButtonActive: {
+    backgroundColor: Colors.textPrimary,
+  },
   sendButtonDisabled: {
-    opacity: 0.35,
+    backgroundColor: Colors.secondaryBackground,
+  },
+  ghostScrollContent: {
+    paddingHorizontal: Spacing.screenGutter,
+    paddingTop: 16,
+    paddingBottom: 110,
+  },
+  ghostInputCard: {
+    padding: 18,
+    marginBottom: 24,
+  },
+  ghostInputLabel: {
+    fontSize: 10,
+    fontWeight: '700',
+    letterSpacing: 0.6,
+    color: Colors.textTertiary,
+    marginBottom: 8,
+  },
+  ghostTextInput: {
+    backgroundColor: Colors.secondaryBackground,
+    borderRadius: Radius.md,
+    padding: 14,
+    fontSize: 14,
+    color: Colors.textPrimary,
+    minHeight: 70,
+    textAlignVertical: 'top',
+    marginBottom: 14,
+    borderWidth: 1,
+    borderColor: Colors.borderHairline,
+  },
+  calibrateButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: Colors.textPrimary,
+    borderRadius: Radius.md,
+    paddingVertical: 12,
+  },
+  calibrateButtonText: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: Colors.textInverted,
+  },
+  triadSectionTitle: {
+    fontSize: 11,
+    fontWeight: '700',
+    letterSpacing: 0.8,
+    color: Colors.textTertiary,
+    marginBottom: 12,
+    marginLeft: 4,
+  },
+  triadCard: {
+    padding: 20,
+    marginBottom: 16,
+  },
+  triadHeader: {
+    marginBottom: 12,
+  },
+  triadTagRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 6,
+  },
+  toneBadge: {
+    backgroundColor: Colors.secondaryBackground,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: Radius.full,
+  },
+  toneBadgeText: {
+    fontSize: 10,
+    fontWeight: '700',
+    letterSpacing: 0.6,
+    color: Colors.textPrimary,
+  },
+  triadCategory: {
+    fontSize: 10,
+    fontWeight: '600',
+    color: Colors.textTertiary,
+  },
+  triadTitle: {
+    fontSize: 17,
+    fontWeight: '700',
+    letterSpacing: -0.3,
+    color: Colors.textPrimary,
+  },
+  replyBox: {
+    backgroundColor: Colors.secondaryBackground,
+    borderRadius: Radius.md,
+    padding: 14,
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: Colors.borderHairline,
+  },
+  replyQuote: {
+    fontSize: 15,
+    lineHeight: 22,
+    fontStyle: 'italic',
+    color: Colors.textPrimary,
+    fontWeight: '500',
+  },
+  strategyText: {
+    fontSize: 13,
+    lineHeight: 19,
+    color: Colors.textTertiary,
+    marginBottom: 16,
+  },
+  triadFooter: {
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: Colors.borderHairline,
+    paddingTop: 12,
+  },
+  copyButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: Colors.secondaryBackground,
+    borderRadius: Radius.md,
+    paddingVertical: 10,
+  },
+  copyButtonDone: {
+    backgroundColor: 'rgba(52, 199, 89, 0.10)',
+  },
+  copyButtonText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: Colors.textPrimary,
   },
 });
