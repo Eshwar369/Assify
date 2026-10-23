@@ -130,6 +130,25 @@
 
 ---
 
+## 🏛️ Sprint 5.6 — Centralized Component-Driven Architecture (Apple Light Edition)
+- [x] `[P0]` **Codify Component-First Law & Skill-First Protocol** in `GEMINI.md` and `AGENTS.md`.
+- [x] `[P0]` **Extract 5 Centralized Layout Primitives** in `mobile/src/components/ui/`:
+  - `ScreenContainer.tsx`: SafeArea, 480px centered desktop canvas, `TabBarContext` auto-hiding scroll hook, and uniform padding.
+  - `SegmentedControl.tsx`: Unified `#F5F5F7` track with full-pill radius, floating `#FFFFFF` active indicator, and haptics.
+  - `StatStrip.tsx`: Borderless multi-column metric row separated by vertical sub-pixel hairlines (`StyleSheet.hairlineWidth`), eliminating "cards-inside-cards" (Anti-Slop Tell #7).
+  - `EditorialSection.tsx`: Standardized section uppercase header, subtitle, optional divider, and uniform 32px breathing room.
+  - `ReceiptQuote.tsx`: Borderless quote with left gold/rose 2.5px accent line, verified chat seal, and timestamps.
+- [x] `[P0]` **Refactor All 4 Tab Screens to Centralized Primitives**:
+  - `index.tsx` (Radar): Refactored to `<ScreenContainer>`, `<SegmentedControl>`, `<LightDeluluGauge>`, `<StatStrip>` (4 chronemics metrics), `<ReceiptQuote>`, and `<EditorialSection>`.
+  - `timeline.tsx` (Fever Chart): Refactored to `<ScreenContainer>`, `<SegmentedControl>`, `<StatStrip>` (3 epoch metrics), `<ReceiptQuote>`, and `<EditorialSection>`.
+  - `coach.tsx` (Tactics): Refactored to `<SegmentedControl>` for Doctor Delulu vs Ghost Writer, and `<ReceiptQuote>` for the reply triad.
+  - `keep.tsx` (The Keep): Refactored to `<ScreenContainer>`, `<ReceiptQuote>`, and `<EditorialSection>`.
+  - `_layout.tsx`: Wrapped tabs in `<TabBarProvider>` with auto-hide floating dock and concise labels.
+- [x] `[P0]` **Build & Typecheck Verification**: `npx tsc --noEmit` passing with 0 errors across entire workspace.
+- [x] `[P0]` **Git Checkpoint Committed**: `f3e8a09` feat(ui): implement centralized layout primitives and refactor tab screens.
+
+---
+
 ## 🚀 Sprint 6 — End-to-End Integration, Sound/Haptics & Polish (Days 12–14)
 - [ ] `[P0]` Connect live WhatsApp file export sharing via native Android intent / Share Sheet.
 - [ ] `[P0]` Real-time streaming token animation for Doctor Assify Coach responses.

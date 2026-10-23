@@ -359,16 +359,33 @@ Clean, tucked-away, premium, distraction-free.
 
 ---
 
-## 🛠️ 3. Component Architecture & Implementation Standard
+## 🛠️ 3. Component Architecture & Implementation Standard (The Component-First Law)
 
-To guarantee 100% fidelity to this design system, all screens must import shared primitives from `@/components/ui/` rather than creating inline card styles:
+Per `AGENTS.md` and `GEMINI.md`: **Components import tokens; screens import components.**
+Screens (`app/(tabs)/*`) MUST NOT create bespoke containers, cards, metric boxes, or segmented switchers in local `StyleSheet` blocks. All screens must import shared primitives from `@/components/ui/`:
 
-1. **`AppleElevatedCard`**: Standard white opaque container with `#0000000A` ambient drop shadow, 16px radius, and sub-pixel hairline.
-2. **`DeluluGaugeLight`**: Light-mode SVG/Canvas gauge with crisp black numerals, subtle gold/rose progress arc, and spring needle physics.
-3. **`AppHeader`**: Persistent header bar containing ASSIFY title + profile avatar trigger.
-4. **`NavigationDrawer`**: Reanimated slide-out drawer providing routing across all 5 modules.
-5. **`MetricPill`**: Grouped micro-stat badge with `#F5F5F7` fill and SF Pro caption styling.
-6. **`ReceiptCallout`**: Light editorial blockquote with monospaced timestamp and verified seal.
+1. **`ScreenContainer`**:
+   - Manages SafeAreaView, mobile viewport width constraints (`maxWidth: 480px` on desktop web), and consistent horizontal gutters (`Spacing.screenGutter = 20px`).
+   - Integrates with `TabBarContext` to seamlessly auto-hide the floating navigation dock on scroll down and reveal it on scroll up.
+2. **`SegmentedControl`**:
+   - The unified Apple sliding switcher with a `#F5F5F7` track, full-pill radius, and floating `#FFFFFF` active pill with subtle ambient shadow.
+   - Used for time ranges (`30D | 90D | All Time`), vibe modes (`Unhinged | Therapy`), and coach tabs (`Doctor Delulu | Ghost Writer`).
+3. **`StatStrip` (Anti-Slop Tell #7 Eradicator)**:
+   - Borderless multi-column metric strip separated strictly by vertical sub-pixel hairlines (`StyleSheet.hairlineWidth`).
+   - Completely replaces arbitrary nested gray cards/boxes. Metrics are pure data-as-decoration.
+   - Radar uses it for 4 chronemics metrics (Initiation / Median Lag / 3 AM Texts / Ghost Risk).
+   - Timeline uses it for 3 epoch metrics (Total Epochs / Velocity / Prognosis).
+4. **`ReceiptQuote`**:
+   - Borderless editorial blockquote with a delicate 2.5px left accent line (champagne gold or blush rose) and verified chat receipt metadata.
+   - Replaces nested gray quote boxes across Radar, Timeline, Coach, and Keep.
+5. **`EditorialSection`**:
+   - Standardized layout container with section uppercase title, optional subtitle, optional divider line, and consistent 32px vertical breathing room.
+6. **`AppleElevatedCard`**:
+   - Standard white opaque container (`#FFFFFF`) with Apple's soft ambient elevation (`shadowOpacity: 0.04`, `shadowRadius: 16`), 16px corner radius, and sub-pixel hairline border (`rgba(0, 0, 0, 0.05)`).
+7. **`LightDeluluGauge`**:
+   - Light-mode SVG gauge with crisp black numerals, subtle gold/rose progress arc, and score classification.
+8. **`AppHeader` & `NavigationDrawer`**:
+   - Persistent top bar with active audited contact tag and profile avatar trigger opening the 5-module navigation drawer.
 
 ---
 
