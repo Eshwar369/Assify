@@ -1,12 +1,25 @@
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import { Tabs } from 'expo-router';
-import { View, Platform, StyleSheet } from 'react-native';
+import { View, Platform, StyleSheet, Animated } from 'react-native';
 import { BlurView } from 'expo-blur';
 import * as Haptics from 'expo-haptics';
 import { Compass, Bot, TrendingUp, Bookmark } from 'lucide-react-native';
-import { Colors, Radius, Typography } from '@/constants/theme';
+import { Colors, Radius } from '@/constants/theme';
+import { TabBarProvider, useTabBar } from '@/context/TabBarContext';
 
-export default function TabsLayout() {
+function TabsLayoutInner() {
+  const { isTabBarVisible } = useTabBar();
+  const translateY = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    Animated.spring(translateY, {
+      toValue: isTabBarVisible ? 0 : 100,
+      damping: 20,
+      stiffness: 180,
+      useNativeDriver: Platform.OS !== 'web',
+    }).start();
+  }, [isTabBarVisible]);
+
   return (
     <Tabs
       screenOptions={{
@@ -26,7 +39,6 @@ export default function TabsLayout() {
             ) : (
               <View style={[StyleSheet.absoluteFill, styles.androidDockBg]} />
             )}
-            {/* Top Sub-pixel Hairline */}
             <View style={styles.topHairline} />
           </View>
         ),
@@ -35,26 +47,28 @@ export default function TabsLayout() {
           backgroundColor: 'transparent',
           borderTopWidth: 0,
           elevation: 0,
-          height: Platform.OS === 'ios' ? 84 : Platform.OS === 'web' ? 68 : 64,
-          paddingTop: 8,
-          paddingBottom: Platform.OS === 'ios' ? 24 : 10,
+          height: Platform.OS === 'ios' ? 84 : Platform.OS === 'web' ? 64 : 60,
+          paddingTop: 6,
+          paddingBottom: Platform.OS === 'ios' ? 24 : 8,
+          transform: [{ translateY }] as any,
           ...(Platform.OS === 'web'
             ? {
                 left: 0,
                 right: 0,
-                maxWidth: 440,
+                maxWidth: 420,
                 marginHorizontal: 'auto',
                 bottom: 16,
-                borderRadius: 36,
+                borderRadius: 32,
                 overflow: 'hidden',
                 borderWidth: 1,
                 borderColor: Colors.borderCard,
                 boxShadow: '0 12px 36px rgba(0, 0, 0, 0.08)',
+                transition: 'transform 250ms cubic-bezier(0.16, 1, 0.3, 1)',
               }
             : {}),
         },
         tabBarLabelStyle: {
-          fontSize: 10.5,
+          fontSize: 11,
           fontWeight: '600',
           letterSpacing: 0.1,
           marginTop: 2,
@@ -69,7 +83,7 @@ export default function TabsLayout() {
             <View style={[styles.iconContainer, focused && styles.activeIconContainer]}>
               <Compass
                 color={focused ? Colors.textPrimary : color}
-                size={21}
+                size={20}
                 strokeWidth={focused ? 2.4 : 1.8}
               />
             </View>
@@ -84,12 +98,12 @@ export default function TabsLayout() {
       <Tabs.Screen
         name="coach"
         options={{
-          title: 'Doctor Delulu',
+          title: 'Coach',
           tabBarIcon: ({ color, focused }) => (
             <View style={[styles.iconContainer, focused && styles.activeIconContainer]}>
               <Bot
                 color={focused ? Colors.textPrimary : color}
-                size={21}
+                size={20}
                 strokeWidth={focused ? 2.4 : 1.8}
               />
             </View>
@@ -104,12 +118,12 @@ export default function TabsLayout() {
       <Tabs.Screen
         name="timeline"
         options={{
-          title: 'Fever Chart',
+          title: 'Fever',
           tabBarIcon: ({ color, focused }) => (
             <View style={[styles.iconContainer, focused && styles.activeIconContainer]}>
               <TrendingUp
                 color={focused ? Colors.textPrimary : color}
-                size={21}
+                size={20}
                 strokeWidth={focused ? 2.4 : 1.8}
               />
             </View>
@@ -124,12 +138,12 @@ export default function TabsLayout() {
       <Tabs.Screen
         name="keep"
         options={{
-          title: 'The Keep',
+          title: 'Keep',
           tabBarIcon: ({ color, focused }) => (
             <View style={[styles.iconContainer, focused && styles.activeIconContainer]}>
               <Bookmark
                 color={focused ? Colors.textPrimary : color}
-                size={21}
+                size={20}
                 strokeWidth={focused ? 2.4 : 1.8}
               />
             </View>
@@ -145,13 +159,21 @@ export default function TabsLayout() {
   );
 }
 
+export default function TabsLayout() {
+  return (
+    <TabBarProvider>
+      <TabsLayoutInner />
+    </TabBarProvider>
+  );
+}
+
 const styles = StyleSheet.create({
   dockWrapper: {
     ...StyleSheet.absoluteFill,
     overflow: 'hidden',
     ...(Platform.OS === 'web'
       ? {
-          borderRadius: 36,
+          borderRadius: 32,
         }
       : {}),
   },

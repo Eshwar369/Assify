@@ -15,22 +15,18 @@ import {
   Heart,
   Zap,
   Shield,
-  Clock,
   Activity,
-  Calendar,
-  ArrowUpRight,
   TrendingUp,
 } from 'lucide-react-native';
 
 import { Colors, Radius, Typography, Spacing } from '@/constants/theme';
 import { AppHeader } from '@/components/ui/AppHeader';
-import { AppleElevatedCard } from '@/components/ui/AppleElevatedCard';
+import { useTabBar } from '@/context/TabBarContext';
 
 interface EpochItem {
   number: string;
   title: string;
   date: string;
-  weight: string;
   narrative: string;
   quote: string;
   accent: string;
@@ -44,7 +40,6 @@ const EPOCHS: EpochItem[] = [
     number: '01',
     title: 'Genesis & First Spark',
     date: 'April - May 2026',
-    weight: '5% Weight',
     narrative:
       'Early tentative calibration. Started with light playful banter and polite check-ins on campus. Both maintained polite texting decorum before boundaries dissolved.',
     quote: 'Hi, are you also in the campus library today?',
@@ -56,7 +51,6 @@ const EPOCHS: EpochItem[] = [
     number: '02',
     title: 'The Vulnerability Threshold',
     date: 'May - July 2026',
-    weight: '10% Weight',
     narrative:
       'The defining turning point. When health emergency occurred, all sarcastic armor dropped. Care and reliance became permanent fixtures of the dynamic.',
     quote: 'Surgery annav kada... everything will be alright take care get well soon ❤️',
@@ -68,7 +62,6 @@ const EPOCHS: EpochItem[] = [
     number: '03',
     title: 'Habitual Equilibrium & Inside Lore',
     date: 'July - September 2026',
-    weight: '10% Weight',
     narrative:
       'Comfort zone unlocked. Nicknames solidified ("Zombiee", "Pulihora Raja"). Daily routines, meme exchanges, and voice note sparring became the baseline.',
     quote: 'Nuvvu naaku message cheyadam manesthe nenu evartho matladali?',
@@ -80,7 +73,6 @@ const EPOCHS: EpochItem[] = [
     number: '04',
     title: 'The Present Operating Reality',
     date: 'October 2026 (Active Dynamic)',
-    weight: '75% Profiler Weight',
     narrative:
       'Sub-minute rapid fire responses (0.5m median delay), 6,481 double-texts, and late-night calls. Pure romantic tension teetering on mutual confession.',
     quote: 'Nuvvu padukunte nenu evartho matladali? Sleep is illegal.',
@@ -91,10 +83,17 @@ const EPOCHS: EpochItem[] = [
   },
 ];
 
-export default function TimelineScreen() {
-  const [selectedRange, setSelectedRange] = useState<'all' | '90d' | '30d'>('all');
+const TIME_RANGES = [
+  { key: '30d', label: '30D' },
+  { key: '90d', label: '90D' },
+  { key: 'all', label: 'All Time' },
+] as const;
 
-  const handleRangeChange = (range: 'all' | '90d' | '30d') => {
+export default function TimelineScreen() {
+  const [selectedRange, setSelectedRange] = useState<'30d' | '90d' | 'all'>('all');
+  const { handleScroll } = useTabBar();
+
+  const handleRangeChange = (range: '30d' | '90d' | 'all') => {
     if (Platform.OS !== 'web') {
       try {
         Haptics.selectionAsync();
@@ -118,30 +117,44 @@ export default function TimelineScreen() {
           style={styles.container}
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
+          onScroll={handleScroll}
+          scrollEventThrottle={16}
         >
-          {/* Time Range Filter Bar */}
-          <View style={styles.filterRow}>
-            {(['all', '90d', '30d'] as const).map((r) => {
-              const label = r === 'all' ? 'All Time' : r === '90d' ? 'Last 90 Days' : 'Last 30 Days';
-              const active = selectedRange === r;
-              return (
-                <TouchableOpacity
-                  key={r}
-                  activeOpacity={0.8}
-                  onPress={() => handleRangeChange(r)}
-                  style={[styles.filterPill, active && styles.filterPillActive]}
-                >
-                  <Text style={[styles.filterPillText, active && styles.filterPillTextActive]}>
-                    {label}
-                  </Text>
-                </TouchableOpacity>
-              );
-            })}
+          {/* Apple Native Segmented Bar (Unified Full-Width Track) */}
+          <View style={styles.segmentedContainer}>
+            <View style={styles.segmentedTrack}>
+              {TIME_RANGES.map((r) => {
+                const active = selectedRange === r.key;
+                return (
+                  <TouchableOpacity
+                    key={r.key}
+                    activeOpacity={0.8}
+                    onPress={() => handleRangeChange(r.key)}
+                    style={[
+                      styles.segmentedTab,
+                      active && styles.segmentedTabActive,
+                    ]}
+                  >
+                    <Text
+                      style={[
+                        styles.segmentedText,
+                        active && styles.segmentedTextActive,
+                      ]}
+                    >
+                      {r.label}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
           </View>
 
-          {/* Hero Trajectory Card */}
-          <AppleElevatedCard floating style={styles.heroCard}>
-            <View style={styles.heroCardHeader}>
+          {/* ============================================================ */}
+          {/* SEAMLESS APPLE EDITORIAL HERO SECTION (NO OUTER CARD BOX) */}
+          {/* ============================================================ */}
+          <View style={styles.editorialHero}>
+            {/* Diagnostic Tag & Date Line */}
+            <View style={styles.diagnosticRow}>
               <View style={styles.statusBadge}>
                 <Activity size={12} color={Colors.accentGold} style={{ marginRight: 4 }} />
                 <Text style={styles.statusBadgeText}>DIAGNOSTIC STATUS</Text>
@@ -149,114 +162,155 @@ export default function TimelineScreen() {
               <Text style={styles.dateRangeText}>APR 2026 → PRESENT</Text>
             </View>
 
-            <Text style={styles.heroTitle}>Accelerated Emotional Entanglement</Text>
-            <Text style={styles.heroSub}>
+            {/* Editorial Headline */}
+            <Text style={styles.headline}>Accelerated Emotional Entanglement</Text>
+            <Text style={styles.subheadline}>
               Tracking over 14,821 messages indicates an exponential surge in late-night availability and reciprocal vulnerability.
             </Text>
 
-            {/* Apple Bezier Fever Curve */}
-            <View style={styles.chartContainer}>
-              <Svg width="100%" height={120} viewBox="0 0 340 120">
+            {/* Seamless Bezier Chart (Fading gracefully into canvas) */}
+            <View style={styles.chartWrapper}>
+              <Svg width="100%" height={140} viewBox="0 0 340 140">
                 <Defs>
-                  <LinearGradient id="chartGrad" x1="0" y1="0" x2="0" y2="1">
-                    <Stop offset="0%" stopColor={Colors.accentGold} stopOpacity={0.25} />
-                    <Stop offset="100%" stopColor={Colors.accentGold} stopOpacity={0.0} />
+                  <LinearGradient id="feverGrad" x1="0" y1="0" x2="0" y2="1">
+                    <Stop offset="0%" stopColor={Colors.accentGold} stopOpacity={0.18} />
+                    <Stop offset="70%" stopColor={Colors.accentGold} stopOpacity={0.03} />
+                    <Stop offset="100%" stopColor={Colors.background} stopOpacity={0.0} />
                   </LinearGradient>
                 </Defs>
 
-                {/* Shaded Area */}
+                {/* Ambient Shading Area */}
                 <Path
-                  d="M 10 95 C 70 85, 120 70, 180 50 C 230 35, 280 20, 330 15 L 330 110 L 10 110 Z"
-                  fill="url(#chartGrad)"
+                  d="M 10 110 C 70 100, 120 80, 180 55 C 230 40, 280 22, 330 16 L 330 135 L 10 135 Z"
+                  fill="url(#feverGrad)"
                 />
 
-                {/* Curve Line */}
+                {/* Primary Trajectory Curve */}
                 <Path
-                  d="M 10 95 C 70 85, 120 70, 180 50 C 230 35, 280 20, 330 15"
+                  d="M 10 110 C 70 100, 120 80, 180 55 C 230 40, 280 22, 330 16"
                   fill="none"
                   stroke={Colors.accentGold}
                   strokeWidth={3}
                 />
 
-                {/* Milestone Node Dots */}
-                <Circle cx="10" cy="95" r="4" fill={Colors.textSecondary} />
-                <Circle cx="120" cy="70" r="4" fill={Colors.accentRose} />
-                <Circle cx="230" cy="35" r="4" fill={Colors.accentGold} />
-                <Circle cx="330" cy="15" r="5" fill={Colors.textPrimary} stroke="#FFFFFF" strokeWidth={2} />
+                {/* Turning Point Nodes */}
+                <Circle cx="10" cy="110" r="4" fill={Colors.textTertiary} />
+                <Circle cx="120" cy="80" r="4" fill={Colors.accentRose} />
+                <Circle cx="230" cy="40" r="4" fill={Colors.accentGold} />
+                <Circle
+                  cx="330"
+                  cy="16"
+                  r="5"
+                  fill={Colors.textPrimary}
+                  stroke="#FFFFFF"
+                  strokeWidth={2}
+                />
               </Svg>
 
-              <View style={styles.chartXLabels}>
+              {/* Seamless X-Axis Labels */}
+              <View style={styles.chartXRow}>
                 <Text style={styles.chartXText}>Apr 2026</Text>
                 <Text style={styles.chartXText}>Jul 2026</Text>
                 <Text style={styles.chartXText}>Sep 2026</Text>
-                <Text style={[styles.chartXText, { color: Colors.textPrimary, fontWeight: '700' }]}>Now</Text>
+                <Text style={[styles.chartXText, styles.chartXTextCurrent]}>Now</Text>
               </View>
             </View>
 
-            {/* Inset Stat Pills */}
-            <View style={styles.statsRow}>
-              <View style={styles.statPill}>
-                <Text style={styles.statLabel}>Total Epochs</Text>
-                <Text style={styles.statValue}>4 Phases</Text>
+            {/* ============================================================ */}
+            {/* APPLE HEALTH / STOCKS MINIMAL STAT STRIP (ZERO CARDS) */}
+            {/* ============================================================ */}
+            <View style={styles.statStrip}>
+              <View style={styles.statColumn}>
+                <Text style={styles.statStripLabel}>TOTAL EPOCHS</Text>
+                <Text style={styles.statStripValue}>4 Phases</Text>
               </View>
-              <View style={styles.statPill}>
-                <Text style={styles.statLabel}>Current Velocity</Text>
-                <Text style={[styles.statValue, { color: Colors.accentGold }]}>Sub-Minute</Text>
+
+              <View style={styles.statDivider} />
+
+              <View style={styles.statColumn}>
+                <Text style={styles.statStripLabel}>VELOCITY</Text>
+                <Text style={[styles.statStripValue, { color: Colors.accentGold }]}>
+                  Sub-Minute
+                </Text>
               </View>
-              <View style={styles.statPill}>
-                <Text style={styles.statLabel}>Prognosis</Text>
-                <Text style={[styles.statValue, { color: Colors.accentRose }]}>Peak Delulu</Text>
+
+              <View style={styles.statDivider} />
+
+              <View style={styles.statColumn}>
+                <Text style={styles.statStripLabel}>PROGNOSIS</Text>
+                <Text style={[styles.statStripValue, { color: Colors.accentRose }]}>
+                  Peak Delulu
+                </Text>
               </View>
             </View>
-          </AppleElevatedCard>
+          </View>
 
-          {/* Epoch Timeline Feed */}
+          {/* ============================================================ */}
+          {/* SEAMLESS EDITORIAL TIMELINE STREAM */}
+          {/* ============================================================ */}
+          <View style={styles.sectionDivider} />
+
           <Text style={styles.sectionTitle}>CHRONOLOGICAL TURNING POINTS</Text>
 
-          <View style={styles.timelineList}>
+          <View style={styles.timelineStream}>
             {EPOCHS.map((epoch, idx) => {
-              const IconComp = epoch.icon;
+              const isLast = idx === EPOCHS.length - 1;
+
               return (
-                <AppleElevatedCard
-                  key={epoch.number}
-                  style={styles.epochCard}
-                  accentVariant={epoch.isCurrent ? 'gold' : 'none'}
-                >
-                  <View style={styles.epochHeaderRow}>
-                    <View style={styles.epochLeftHeader}>
-                      <View style={[styles.epochIconCircle, { backgroundColor: Colors.secondaryBackground }]}>
-                        <IconComp size={16} color={epoch.accent} />
+                <View key={epoch.number} style={styles.streamItem}>
+                  {/* Left Vertical Line & Icon */}
+                  <View style={styles.streamGutter}>
+                    <View
+                      style={[
+                        styles.streamDot,
+                        epoch.isCurrent && styles.streamDotActive,
+                      ]}
+                    >
+                      <View
+                        style={[
+                          styles.streamDotInner,
+                          { backgroundColor: epoch.accent },
+                        ]}
+                      />
+                    </View>
+                    {!isLast && <View style={styles.streamLine} />}
+                  </View>
+
+                  {/* Right Content Stream */}
+                  <View style={styles.streamBody}>
+                    <View style={styles.streamHeaderRow}>
+                      <View style={styles.streamPhaseRow}>
+                        <Text style={styles.streamPhaseNumber}>
+                          PHASE {epoch.number}
+                        </Text>
+                        {epoch.isCurrent && (
+                          <View style={styles.activePill}>
+                            <Text style={styles.activePillText}>ACTIVE STAGE</Text>
+                          </View>
+                        )}
                       </View>
-                      <View>
-                        <View style={styles.epochBadgeRow}>
-                          <Text style={styles.epochNumber}>PHASE {epoch.number}</Text>
-                          {epoch.isCurrent && (
-                            <View style={styles.activePill}>
-                              <Text style={styles.activePillText}>ACTIVE STAGE</Text>
-                            </View>
-                          )}
-                        </View>
-                        <Text style={styles.epochTitle}>{epoch.title}</Text>
-                      </View>
+                      <Text style={styles.streamDate}>{epoch.date}</Text>
                     </View>
 
-                    <Text style={styles.epochDate}>{epoch.date}</Text>
-                  </View>
+                    <Text style={styles.streamTitle}>{epoch.title}</Text>
+                    <Text style={styles.streamNarrative}>{epoch.narrative}</Text>
 
-                  <Text style={styles.epochNarrative}>{epoch.narrative}</Text>
+                    {/* Integrated Quote (Borderless, with subtle left accent line) */}
+                    <View style={styles.editorialQuote}>
+                      <Text style={styles.quoteText}>"{epoch.quote}"</Text>
+                    </View>
 
-                  {/* Verified Receipt Callout */}
-                  <View style={styles.receiptBox}>
-                    <Text style={styles.receiptLabel}>VERIFIED CHAT RECEIPT</Text>
-                    <Text style={styles.receiptQuote}>"{epoch.quote}"</Text>
+                    {/* Delta Metric */}
+                    <View style={styles.deltaRow}>
+                      <TrendingUp
+                        size={12}
+                        color={Colors.textTertiary}
+                        style={{ marginRight: 6 }}
+                      />
+                      <Text style={styles.deltaText}>{epoch.deltaMetric}</Text>
+                    </View>
                   </View>
-
-                  {/* Delta Metric */}
-                  <View style={styles.deltaRow}>
-                    <TrendingUp size={13} color={Colors.textTertiary} style={{ marginRight: 6 }} />
-                    <Text style={styles.deltaText}>{epoch.deltaMetric}</Text>
-                  </View>
-                </AppleElevatedCard>
+                </View>
               );
             })}
           </View>
@@ -292,38 +346,55 @@ const styles = StyleSheet.create({
   scrollContent: {
     paddingHorizontal: Spacing.screenGutter,
     paddingTop: 16,
-    paddingBottom: 110,
+    paddingBottom: 120,
   },
-  filterRow: {
-    flexDirection: 'row',
-    gap: 8,
+  segmentedContainer: {
     marginBottom: 20,
   },
-  filterPill: {
-    paddingHorizontal: 14,
-    paddingVertical: 7,
-    borderRadius: Radius.full,
+  segmentedTrack: {
+    flexDirection: 'row',
     backgroundColor: Colors.secondaryBackground,
+    borderRadius: Radius.full,
+    padding: 3,
     borderWidth: 1,
     borderColor: Colors.borderHairline,
   },
-  filterPillActive: {
-    backgroundColor: Colors.textPrimary,
-    borderColor: Colors.textPrimary,
+  segmentedTab: {
+    flex: 1,
+    paddingVertical: 7,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: Radius.full,
   },
-  filterPillText: {
+  segmentedTabActive: {
+    backgroundColor: '#FFFFFF',
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.06,
+        shadowRadius: 4,
+      },
+      web: {
+        boxShadow: '0 2px 6px rgba(0, 0, 0, 0.05)',
+      } as any,
+    }),
+  },
+  segmentedText: {
     fontSize: 12,
-    fontWeight: '600',
-    color: Colors.textSecondary,
+    fontWeight: '500',
+    color: Colors.textTertiary,
   },
-  filterPillTextActive: {
-    color: Colors.textInverted,
+  segmentedTextActive: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: Colors.textPrimary,
   },
-  heroCard: {
-    padding: 22,
-    marginBottom: 32,
+  editorialHero: {
+    paddingTop: 8,
+    paddingBottom: 16,
   },
-  heroCardHeader: {
+  diagnosticRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
@@ -348,99 +419,135 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: Colors.textTertiary,
   },
-  heroTitle: {
-    fontSize: 20,
+  headline: {
+    fontSize: 24,
     fontWeight: '800',
-    letterSpacing: -0.4,
+    letterSpacing: -0.5,
+    lineHeight: 30,
     color: Colors.textPrimary,
     marginBottom: 6,
   },
-  heroSub: {
+  subheadline: {
     fontSize: 13,
     lineHeight: 19,
     color: Colors.textSecondary,
     marginBottom: 16,
   },
-  chartContainer: {
-    backgroundColor: Colors.secondaryBackground,
-    borderRadius: Radius.md,
-    padding: 12,
-    marginBottom: 16,
-    borderWidth: 1,
-    borderColor: Colors.borderHairline,
+  chartWrapper: {
+    paddingVertical: 6,
+    marginBottom: 18,
   },
-  chartXLabels: {
+  chartXRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     paddingHorizontal: 6,
-    marginTop: 6,
+    marginTop: 4,
   },
   chartXText: {
     fontSize: 10,
     color: Colors.textTertiary,
   },
-  statsRow: {
-    flexDirection: 'row',
-    gap: 8,
+  chartXTextCurrent: {
+    color: Colors.textPrimary,
+    fontWeight: '700',
   },
-  statPill: {
+  statStrip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: 14,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderColor: Colors.borderHairline,
+  },
+  statColumn: {
     flex: 1,
-    backgroundColor: Colors.secondaryBackground,
-    borderRadius: Radius.md,
-    padding: 12,
     alignItems: 'center',
   },
-  statLabel: {
-    fontSize: 10,
-    fontWeight: '600',
-    color: Colors.textTertiary,
-    marginBottom: 2,
+  statDivider: {
+    width: StyleSheet.hairlineWidth,
+    height: 28,
+    backgroundColor: Colors.borderHairline,
   },
-  statValue: {
-    fontSize: 14,
+  statStripLabel: {
+    fontSize: 10,
     fontWeight: '700',
+    letterSpacing: 0.6,
+    color: Colors.textTertiary,
+    marginBottom: 3,
+  },
+  statStripValue: {
+    fontSize: 16,
+    fontWeight: '800',
+    letterSpacing: -0.3,
     color: Colors.textPrimary,
+  },
+  sectionDivider: {
+    height: 1,
+    backgroundColor: Colors.borderHairline,
+    marginVertical: 24,
   },
   sectionTitle: {
     fontSize: 11,
     fontWeight: '700',
     letterSpacing: 0.8,
     color: Colors.textTertiary,
-    marginBottom: 14,
-    marginLeft: 4,
+    marginBottom: 20,
+    marginLeft: 2,
   },
-  timelineList: {
-    gap: 16,
+  timelineStream: {
+    paddingLeft: 4,
   },
-  epochCard: {
-    padding: 20,
-  },
-  epochHeaderRow: {
+  streamItem: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    marginBottom: 12,
+    marginBottom: 28,
   },
-  epochLeftHeader: {
-    flexDirection: 'row',
+  streamGutter: {
+    width: 28,
     alignItems: 'center',
-    flex: 1,
   },
-  epochIconCircle: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
+  streamDot: {
+    width: 14,
+    height: 14,
+    borderRadius: 7,
+    backgroundColor: Colors.secondaryBackground,
+    borderWidth: 1.5,
+    borderColor: Colors.borderHairline,
     alignItems: 'center',
     justifyContent: 'center',
-    marginRight: 12,
+    zIndex: 2,
   },
-  epochBadgeRow: {
+  streamDotActive: {
+    borderColor: Colors.accentGold,
+  },
+  streamDotInner: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+  },
+  streamLine: {
+    width: 1.5,
+    flex: 1,
+    backgroundColor: Colors.borderHairline,
+    marginTop: 4,
+    marginBottom: -8,
+  },
+  streamBody: {
+    flex: 1,
+    paddingLeft: 12,
+  },
+  streamHeaderRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 4,
+  },
+  streamPhaseRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
-    marginBottom: 2,
   },
-  epochNumber: {
+  streamPhaseNumber: {
     fontSize: 10,
     fontWeight: '700',
     letterSpacing: 0.6,
@@ -458,38 +565,31 @@ const styles = StyleSheet.create({
     letterSpacing: 0.5,
     color: Colors.accentGold,
   },
-  epochTitle: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: Colors.textPrimary,
-    letterSpacing: -0.3,
-  },
-  epochDate: {
+  streamDate: {
     fontSize: 11,
     color: Colors.textTertiary,
   },
-  epochNarrative: {
+  streamTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+    letterSpacing: -0.3,
+    color: Colors.textPrimary,
+    marginBottom: 4,
+  },
+  streamNarrative: {
     fontSize: 13,
     lineHeight: 19,
     color: Colors.textSecondary,
-    marginBottom: 14,
+    marginBottom: 10,
   },
-  receiptBox: {
-    backgroundColor: Colors.secondaryBackground,
-    borderRadius: Radius.md,
-    padding: 12,
-    marginBottom: 12,
-    borderWidth: 1,
-    borderColor: Colors.borderHairline,
+  editorialQuote: {
+    paddingLeft: 10,
+    borderLeftWidth: 2,
+    borderLeftColor: Colors.accentGold,
+    paddingVertical: 3,
+    marginBottom: 10,
   },
-  receiptLabel: {
-    fontSize: 9,
-    fontWeight: '700',
-    letterSpacing: 0.6,
-    color: Colors.accentGold,
-    marginBottom: 4,
-  },
-  receiptQuote: {
+  quoteText: {
     fontSize: 13,
     fontStyle: 'italic',
     color: Colors.textPrimary,

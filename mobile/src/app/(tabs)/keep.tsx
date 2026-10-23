@@ -28,6 +28,7 @@ import { Colors, Radius, Typography, Spacing } from '@/constants/theme';
 import { AppHeader } from '@/components/ui/AppHeader';
 import { AppleElevatedCard } from '@/components/ui/AppleElevatedCard';
 import { getContacts, getKeepVault, KeepItem } from '@/services/api';
+import { useTabBar } from '@/context/TabBarContext';
 
 const CATEGORIES = [
   { key: 'all', label: 'All Vault' },
@@ -102,6 +103,7 @@ export default function KeepScreen() {
   const [completedIds, setCompletedIds] = useState<Set<number>>(new Set());
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const { handleScroll } = useTabBar();
 
   const loadKeepData = async () => {
     try {
@@ -201,6 +203,8 @@ export default function KeepScreen() {
           style={styles.container}
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
+          onScroll={handleScroll}
+          scrollEventThrottle={16}
           refreshControl={
             <RefreshControl
               refreshing={refreshing}

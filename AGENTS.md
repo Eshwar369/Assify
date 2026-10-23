@@ -29,15 +29,46 @@
 
 ---
 
+## 🛑 MANDATORY SKILL-FIRST PROTOCOL (ZERO BYPASSING ALLOWED)
+
+**The AI agent is strictly forbidden from bypassing, ignoring, or taking shortcuts around any installed skill.**
+
+Before touching any code, proposing any architecture, or reviewing any feature:
+
+1. **Active Skill Discovery:**  
+   The agent MUST identify and inspect the relevant skill(s) located in `.agents/skills/`:
+   - Building or modifying UI $\rightarrow$ **`expo-design-system`**, **`apple-design`**, **`emil-design-eng`**.
+   - Writing animations or gestures $\rightarrow$ **`animate-expo`**, **`animation-performance`**.
+   - Building or updating API contracts $\rightarrow$ **`api-and-interface-design`**.
+   - Writing business logic or fixing bugs $\rightarrow$ **`test-driven-development`**, **`debugging-and-error-recovery`**.
+   - Reviewing code before merge $\rightarrow$ **`code-review-and-quality`**, **`doubt-driven-development`**.
+   - Database migrations $\rightarrow$ **`deprecation-and-migration`**.
+   - Auditing accessibility $\rightarrow$ **`accessibility`**.
+2. **Strict Adherence to Skill Guidelines:**  
+   Read the skill's `SKILL.md` and reference checklists in full. It is an architectural failure to use a skill merely for token lookups while ignoring its structural and anti-pattern rules.
+3. **The Component-First Law (Zero Screen-Level Container Drift):**  
+   - Per `expo-design-system`: **Components import tokens; screens import components.**
+   - Screens (`app/(tabs)/*`) MUST NOT create bespoke containers, cards, metric boxes, or segmented switchers in local `StyleSheet` blocks.
+   - Any visual structure used across screens MUST be extracted into a shared primitive in `mobile/src/components/ui/` (`StatStrip`, `SegmentedControl`, `EditorialSection`, `ReceiptQuote`).
+   - When a design change is made, it MUST be updated in the centralized primitive so **all screens inherit the update simultaneously**. Never apply a local patch to one screen while leaving the rest of the application in an inconsistent state.
+4. **Anti-Slop Enforcement (`native-slop.md`):**  
+   Strictly prevent the 20 named tells:
+   - **No "Everything's a Card":** Do not wrap every row in its own card or nest cards inside cards. Group via background + hairlines.
+   - **No Floating Pill Tab Bar collisions:** Never let a floating bar obscure content or truncate labels.
+   - **No Wireframe Borders:** Avoid 1px gray borders around every element. Rely on spacing and surface contrast.
+
+---
+
 ## 📋 Living Documentation Suite (Industry Standard)
 
-The project maintains 5 core documentation files in the repository root:
+The project maintains 6 core documentation files in the repository root:
 
 1. **[`ARCHITECTURE.md`](file:///c:/Users/DELL/gen%20ai/Assify/ARCHITECTURE.md)** — Master system design, C4 component diagrams, data flow, API contracts, and database schema specifications.
 2. **[`ROADMAP.md`](file:///c:/Users/DELL/gen%20ai/Assify/ROADMAP.md)** — High-level product milestones, feature matrix, and release phases (Phase 1 through Phase 6).
 3. **[`TODO.md`](file:///c:/Users/DELL/gen%20ai/Assify/TODO.md)** — Active sprint board with granular daily tasks, priority tags (`P0`, `P1`, `P2`), and progress tracking.
 4. **[`DECISIONS.md`](file:///c:/Users/DELL/gen%20ai/Assify/DECISIONS.md)** — Architectural Decision Records (ADRs) documenting every major technical choice (FastAPI vs Flask, Expo vs Flutter, GPT-4o-mini, SQLite vs Supabase).
 5. **[`IDEAS.md`](file:///c:/Users/DELL/gen%20ai/Assify/IDEAS.md)** — Product backlog, virality hooks, monetization ideas, and psychological AI features.
+6. **[`DESIGN_SYSTEM.md`](file:///c:/Users/DELL/gen%20ai/Assify/DESIGN_SYSTEM.md)** — Canonical Light Apple Design System, 6-dimensional screen contracts, and token specifications.
 
 ---
 

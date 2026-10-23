@@ -33,6 +33,7 @@ import { AppHeader } from '@/components/ui/AppHeader';
 import { AppleElevatedCard } from '@/components/ui/AppleElevatedCard';
 import { LightDeluluGauge } from '@/components/ui/LightDeluluGauge';
 import { WhatsAppDropzone } from '@/components/WhatsAppDropzone';
+import { useTabBar } from '@/context/TabBarContext';
 import {
   getContacts,
   getReportDossier,
@@ -42,6 +43,7 @@ import {
 
 export default function RadarScreen() {
   const router = useRouter();
+  const { handleScroll } = useTabBar();
   const [contacts, setContacts] = useState<Contact[]>([]);
   const [activeContact, setActiveContact] = useState<Contact | null>(null);
   const [dossier, setDossier] = useState<ReportDossierResponse | null>(null);
@@ -170,6 +172,8 @@ export default function RadarScreen() {
           style={styles.scrollView}
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
+          onScroll={handleScroll}
+          scrollEventThrottle={16}
           refreshControl={
             <RefreshControl
               refreshing={refreshing}
