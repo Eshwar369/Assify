@@ -3,13 +3,12 @@ import {
   View,
   Text,
   StyleSheet,
-  ScrollView,
-  TouchableOpacity,
   ActivityIndicator,
   RefreshControl,
-  SafeAreaView,
   Platform,
   Modal,
+  TouchableOpacity,
+  ScrollView,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import * as Haptics from 'expo-haptics';
@@ -17,23 +16,24 @@ import {
   Flame,
   Sparkles,
   ChevronRight,
-  TrendingUp,
-  Brain,
-  Clock,
   Layers,
   Check,
   X,
   MessageCircle,
-  Shield,
-  Zap,
 } from 'lucide-react-native';
 
-import { Colors, Radius, Typography, Spacing } from '@/constants/theme';
-import { AppHeader } from '@/components/ui/AppHeader';
-import { AppleElevatedCard } from '@/components/ui/AppleElevatedCard';
-import { LightDeluluGauge } from '@/components/ui/LightDeluluGauge';
+import { Colors, Radius } from '@/constants/theme';
+import {
+  ScreenContainer,
+  AppHeader,
+  SegmentedControl,
+  StatStrip,
+  ReceiptQuote,
+  EditorialSection,
+  LightDeluluGauge,
+  AppleElevatedCard,
+} from '@/components/ui';
 import { WhatsAppDropzone } from '@/components/WhatsAppDropzone';
-import { useTabBar } from '@/context/TabBarContext';
 import {
   getContacts,
   getReportDossier,
@@ -41,9 +41,13 @@ import {
   ReportDossierResponse,
 } from '@/services/api';
 
+const VIBE_OPTIONS = [
+  { key: 'unhinged', label: 'Unhinged Roast', icon: Flame },
+  { key: 'therapy', label: 'Clinical Therapy', icon: Sparkles },
+];
+
 export default function RadarScreen() {
   const router = useRouter();
-  const { handleScroll } = useTabBar();
   const [contacts, setContacts] = useState<Contact[]>([]);
   const [activeContact, setActiveContact] = useState<Contact | null>(null);
   const [dossier, setDossier] = useState<ReportDossierResponse | null>(null);
@@ -124,17 +128,6 @@ export default function RadarScreen() {
     }, 1200);
   };
 
-  const handleVibeToggle = (mode: 'therapy' | 'unhinged') => {
-    if (Platform.OS !== 'web') {
-      try {
-        Haptics.selectionAsync();
-      } catch {
-        // Haptics fallback
-      }
-    }
-    setVibeMode(mode);
-  };
-
   if (loading && !refreshing) {
     return (
       <View style={styles.centerContainer}>
@@ -154,216 +147,160 @@ export default function RadarScreen() {
   // Formatting chronemics
   const userInitPct = chron?.user_initiation_pct ?? 81;
   const contactInitPct = chron?.contact_initiation_pct ?? 19;
-  const userDelay = chron?.user_median_delay_m ? `${chron.user_median_delay_m}m` : '3m';
   const contactDelay = chron?.contact_median_delay_m ? `${chron.contact_median_delay_m}m` : '4h 48m';
   const doubleTexts = chron?.user_double_texts ?? 24;
 
+  const chronemicsMetrics = [
+    {
+      label: 'INITIATION',
+      value: `${userInitPct}% / ${contactInitPct}%`,
+      sub: `You vs ${contactName}`,
+    },
+    {
+      label: 'MEDIAN LAG',
+      value: contactDelay,
+      sub: 'Response Delay',
+    },
+    {
+      label: '3 AM TEXTS',
+      value: doubleTexts,
+      sub: 'Double-Texts',
+    },
+    {
+      label: 'GHOST RISK',
+      value: isSevere ? 'Severe' : 'Low',
+      sub: 'Predictive',
+      accent: (isSevere ? 'rose' : 'success') as any,
+    },
+  ];
+
   return (
-    <SafeAreaView style={styles.safeArea}>
-      <View style={styles.desktopCanvas}>
-        {/* Apple Persistent App Header */}
+    <ScreenContainer
+      header={
         <AppHeader
           title="Radar"
           subtitle="Relationship Forensics"
           activePartner={contactName}
         />
+      }
+      refreshControl={
+        <RefreshControl
+          refreshing={refreshing}
+          onRefresh={onRefresh}
+          tintColor={Colors.accentGold}
+        />
+      }
+    >
+      {/* 1. Unified Segmented Control (Vibe Mode) */}
+      <SegmentedControl
+        options={VIBE_OPTIONS}
+        value={vibeMode}
+        onChange={(val) => setVibeMode(val as any)}
+      />
 
-        <ScrollView
-          style={styles.scrollView}
-          contentContainerStyle={styles.scrollContent}
-          showsVerticalScrollIndicator={false}
-          onScroll={handleScroll}
-          scrollEventThrottle={16}
-          refreshControl={
-            <RefreshControl
-              refreshing={refreshing}
-              onRefresh={onRefresh}
-              tintColor={Colors.accentGold}
-            />
-          }
-        >
-          {/* ============================================================ */}
-          {/* THEATRICAL UNBOXING HERO LAUNCHER */}
-          {/* ============================================================ */}
-          <AppleElevatedCard
-            interactive
-            floating
-            accentVariant="rose"
-            onPress={() => router.push('/unboxing-preview')}
-            style={styles.unboxingBanner}
-          >
-            <View style={styles.unboxingBannerContent}>
-              <View style={styles.unboxingBadgeRow}>
-                <View style={styles.unboxingBadge}>
-                  <Sparkles size={11} color={Colors.accentRose} style={{ marginRight: 4 }} />
-                  <Text style={styles.unboxingBadgeText}>THEATRICAL EXPERIENCE</Text>
-                </View>
-              </View>
-
-              <Text style={styles.unboxingTitle}>Cinematic 5-Beat Unboxing</Text>
-              <Text style={styles.unboxingSubtitle}>
-                Paced reveals • Spring-loaded gauge • 9:16 Viral Story Receipt
-              </Text>
-            </View>
-            <View style={styles.chevronCircle}>
-              <ChevronRight size={18} color={Colors.textPrimary} />
-            </View>
-          </AppleElevatedCard>
-
-          {/* ============================================================ */}
-          {/* HERO DELULU COMMAND CENTER */}
-          {/* ============================================================ */}
-          <AppleElevatedCard floating style={styles.heroGaugeCard}>
-            <View style={styles.cardHeaderRow}>
-              <View style={styles.statusPill}>
-                <View style={styles.pulseDot} />
-                <Text style={styles.statusPillText}>Live Chronemics Radar</Text>
-              </View>
-              <Text style={styles.serialText}>
-                ID: AF-{activeContact?.id?.slice(0, 4) || '8492'}
-              </Text>
-            </View>
-
-            {/* Centered Light Delulu Gauge */}
-            <View style={styles.gaugeContainer}>
-              <LightDeluluGauge
-                score={score}
-                size={230}
-                strokeWidth={14}
-                classification={isSevere ? 'Textbook Clownery' : 'Reciprocal Chemistry'}
-              />
-            </View>
-
-            {/* Verdict Diagnosis Blockquote */}
-            <View style={styles.verdictContainer}>
-              <View style={styles.archetypeBadge}>
-                <Sparkles size={12} color={Colors.accentGold} style={{ marginRight: 5 }} />
-                <Text style={styles.archetypeText}>
-                  {profile?.status_label || 'The Olympic Paragraph Writer'}
-                </Text>
-              </View>
-
-              <Text style={styles.verdictQuote}>
-                "{profile?.overall_diagnosis ||
-                  'You are romanticizing radio silence and investing emotional capital into an avoidant void.'}"
-              </Text>
-            </View>
-
-            {/* Power Balance Bar */}
-            <View style={styles.powerSection}>
-              <View style={styles.powerLabelRow}>
-                <Text style={styles.powerTitle}>Power Balance</Text>
-                <Text style={styles.powerStatus}>
-                  {userInitPct < 50 ? `${contactName} Controls Frame` : 'You Control Frame'}
-                </Text>
-              </View>
-
-              <View style={styles.powerTrack}>
-                <View
-                  style={[
-                    styles.powerFill,
-                    { width: `${Math.min(Math.max(userInitPct, 15), 85)}%` },
-                  ]}
-                />
-              </View>
-
-              <View style={styles.powerStatsRow}>
-                <Text style={styles.powerStatText}>You: {userInitPct}%</Text>
-                <Text style={styles.powerStatText}>{contactName}: {contactInitPct}%</Text>
-              </View>
-            </View>
-          </AppleElevatedCard>
-
-          {/* ============================================================ */}
-          {/* FORENSIC CHRONEMICS GRID */}
-          {/* ============================================================ */}
-          <View style={styles.sectionHeaderRow}>
-            <Text style={styles.sectionTitle}>Forensic Chronemics</Text>
-            <View style={styles.mathBadge}>
-              <Text style={styles.mathBadgeText}>MATHEMATICAL METRICS</Text>
+      {/* 2. Theatrical Unboxing Hero Launcher */}
+      <AppleElevatedCard
+        interactive
+        accentVariant="rose"
+        onPress={() => router.push('/unboxing-preview')}
+        style={styles.unboxingBanner}
+      >
+        <View style={styles.unboxingBannerContent}>
+          <View style={styles.unboxingBadgeRow}>
+            <View style={styles.unboxingBadge}>
+              <Sparkles size={11} color={Colors.accentRose} style={{ marginRight: 4 }} />
+              <Text style={styles.unboxingBadgeText}>THEATRICAL EXPERIENCE</Text>
             </View>
           </View>
+          <Text style={styles.unboxingTitle}>Cinematic 5-Beat Reveal</Text>
+          <Text style={styles.unboxingSubtitle}>
+            Paced reveals • Spring-loaded gauge • 9:16 Viral Story Receipt
+          </Text>
+        </View>
+        <View style={styles.chevronCircle}>
+          <ChevronRight size={18} color={Colors.textPrimary} />
+        </View>
+      </AppleElevatedCard>
 
-          <View style={styles.metricGrid}>
-            {/* Metric 1: Initiation */}
-            <AppleElevatedCard style={styles.metricCard}>
-              <Text style={styles.metricCardLabel}>INITIATION SPLIT</Text>
-              <Text style={styles.metricCardValue}>{userInitPct}% / {contactInitPct}%</Text>
-              <Text style={styles.metricCardSub}>You vs {contactName}</Text>
-            </AppleElevatedCard>
-
-            {/* Metric 2: Delay */}
-            <AppleElevatedCard style={styles.metricCard}>
-              <Text style={styles.metricCardLabel}>THEIR MEDIAN LAG</Text>
-              <Text style={styles.metricCardValue}>{contactDelay}</Text>
-              <Text style={styles.metricCardSub}>Response Latency</Text>
-            </AppleElevatedCard>
-
-            {/* Metric 3: Night Owl Texts */}
-            <AppleElevatedCard style={styles.metricCard}>
-              <Text style={styles.metricCardLabel}>NIGHT OWL TEXTS</Text>
-              <Text style={styles.metricCardValue}>{doubleTexts}</Text>
-              <Text style={styles.metricCardSub}>3:00 AM Double Texts</Text>
-            </AppleElevatedCard>
-
-            {/* Metric 4: Ghosting Threat */}
-            <AppleElevatedCard style={styles.metricCard}>
-              <Text style={styles.metricCardLabel}>GHOSTING RISK</Text>
-              <Text
-                style={[
-                  styles.metricCardValue,
-                  { color: isSevere ? Colors.accentDanger : Colors.accentSuccess },
-                ]}
-              >
-                {isSevere ? 'Severe' : 'Low'}
-              </Text>
-              <Text style={styles.metricCardSub}>Predictive Risk</Text>
-            </AppleElevatedCard>
+      {/* 3. Centerpiece Hero Delulu Gauge */}
+      <View style={styles.gaugeSection}>
+        <View style={styles.diagnosticRow}>
+          <View style={styles.statusPill}>
+            <View style={styles.pulseDot} />
+            <Text style={styles.statusPillText}>Live Chronemics Radar</Text>
           </View>
+          <Text style={styles.serialText}>
+            ID: AF-{activeContact?.id?.slice(0, 4) || '8492'}
+          </Text>
+        </View>
 
-          {/* ============================================================ */}
-          {/* QUICK SHORTCUTS ROW */}
-          {/* ============================================================ */}
-          <View style={styles.shortcutsRow}>
-            <AppleElevatedCard
-              interactive
-              onPress={() => router.push('/acts-modal')}
-              style={styles.shortcutCard}
-            >
-              <Layers size={20} color={Colors.textPrimary} style={{ marginBottom: 8 }} />
-              <Text style={styles.shortcutTitle}>17 Theatrical Acts</Text>
-              <Text style={styles.shortcutSub}>Psychological Forensics</Text>
-            </AppleElevatedCard>
+        <LightDeluluGauge
+          score={score}
+          size={230}
+          strokeWidth={14}
+          classification={isSevere ? 'Textbook Clownery' : 'Reciprocal Chemistry'}
+        />
 
-            <AppleElevatedCard
-              interactive
-              onPress={() => router.push('/coach')}
-              style={styles.shortcutCard}
-            >
-              <MessageCircle size={20} color={Colors.accentGold} style={{ marginBottom: 8 }} />
-              <Text style={styles.shortcutTitle}>Doctor Delulu</Text>
-              <Text style={styles.shortcutSub}>Tactical Reply Triad</Text>
-            </AppleElevatedCard>
-          </View>
-
-          {/* ============================================================ */}
-          {/* TRANSCRIPT DROPZONE */}
-          {/* ============================================================ */}
-          <View style={styles.dropzoneSection}>
-            <Text style={styles.sectionTitle}>Update Transcript</Text>
-            <WhatsAppDropzone
-              vibeMode={vibeMode}
-              onVibeModeChange={setVibeMode}
-              onFileSelect={handleFileDrop}
-              isAnalyzing={isAnalyzing}
-            />
-          </View>
-        </ScrollView>
+        {/* Archetype Badge */}
+        <View style={styles.archetypeBadge}>
+          <Sparkles size={12} color={Colors.accentGold} style={{ marginRight: 5 }} />
+          <Text style={styles.archetypeText}>
+            {profile?.status_label || 'The Olympic Paragraph Writer'}
+          </Text>
+        </View>
       </View>
 
-      {/* ============================================================ */}
-      {/* CONTACT PICKER MODAL */}
-      {/* ============================================================ */}
+      {/* 4. Unified Borderless StatStrip (Same DNA as Fever Chart) */}
+      <StatStrip metrics={chronemicsMetrics} style={{ marginBottom: 24 }} />
+
+      {/* 5. Executive Diagnosis using Unified ReceiptQuote */}
+      <EditorialSection title="Forensic Verdict">
+        <ReceiptQuote
+          quote={
+            profile?.overall_diagnosis ||
+            'You are romanticizing radio silence and investing emotional capital into an avoidant void.'
+          }
+          label="DOCTOR DELULU DIAGNOSIS"
+          accentVariant={isSevere ? 'rose' : 'gold'}
+        />
+      </EditorialSection>
+
+      {/* 6. Quick Intelligence Shortcuts */}
+      <EditorialSection title="Deep-Dive Intelligence">
+        <View style={styles.shortcutsRow}>
+          <AppleElevatedCard
+            interactive
+            onPress={() => router.push('/acts-modal')}
+            style={styles.shortcutCard}
+          >
+            <Layers size={20} color={Colors.textPrimary} style={{ marginBottom: 8 }} />
+            <Text style={styles.shortcutTitle}>17 Theatrical Acts</Text>
+            <Text style={styles.shortcutSub}>Psychological Forensics</Text>
+          </AppleElevatedCard>
+
+          <AppleElevatedCard
+            interactive
+            onPress={() => router.push('/coach')}
+            style={styles.shortcutCard}
+          >
+            <MessageCircle size={20} color={Colors.accentGold} style={{ marginBottom: 8 }} />
+            <Text style={styles.shortcutTitle}>Doctor Delulu</Text>
+            <Text style={styles.shortcutSub}>Tactical Reply Triad</Text>
+          </AppleElevatedCard>
+        </View>
+      </EditorialSection>
+
+      {/* 7. Transcript Dropzone */}
+      <EditorialSection title="Update Transcript">
+        <WhatsAppDropzone
+          vibeMode={vibeMode}
+          onVibeModeChange={setVibeMode}
+          onFileSelect={handleFileDrop}
+          isAnalyzing={isAnalyzing}
+        />
+      </EditorialSection>
+
+      {/* Contact Picker Modal */}
       <Modal
         visible={showContactPicker}
         transparent
@@ -419,38 +356,11 @@ export default function RadarScreen() {
           </View>
         </TouchableOpacity>
       </Modal>
-    </SafeAreaView>
+    </ScreenContainer>
   );
 }
 
 const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: Colors.background,
-  },
-  desktopCanvas: {
-    flex: 1,
-    width: '100%',
-    maxWidth: 480,
-    alignSelf: 'center',
-    backgroundColor: Colors.background,
-    ...Platform.select({
-      web: {
-        borderLeftWidth: 1,
-        borderRightWidth: 1,
-        borderColor: Colors.borderHairline,
-        minHeight: '100vh',
-      } as any,
-    }),
-  },
-  scrollView: {
-    flex: 1,
-  },
-  scrollContent: {
-    paddingHorizontal: Spacing.screenGutter,
-    paddingTop: 16,
-    paddingBottom: 110,
-  },
   centerContainer: {
     flex: 1,
     backgroundColor: Colors.background,
@@ -475,8 +385,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    padding: 20,
-    marginBottom: 24,
+    padding: 18,
+    marginBottom: 20,
   },
   unboxingBannerContent: {
     flex: 1,
@@ -501,7 +411,7 @@ const styles = StyleSheet.create({
     color: Colors.accentRose,
   },
   unboxingTitle: {
-    fontSize: 17,
+    fontSize: 16,
     fontWeight: '700',
     color: Colors.textPrimary,
     letterSpacing: -0.3,
@@ -513,22 +423,24 @@ const styles = StyleSheet.create({
     lineHeight: 16,
   },
   chevronCircle: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
+    width: 32,
+    height: 32,
+    borderRadius: 16,
     backgroundColor: Colors.secondaryBackground,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  heroGaugeCard: {
-    padding: 22,
-    marginBottom: 32,
+  gaugeSection: {
+    alignItems: 'center',
+    paddingTop: 8,
+    paddingBottom: 16,
   },
-  cardHeaderRow: {
+  diagnosticRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 8,
+    width: '100%',
+    marginBottom: 12,
   },
   statusPill: {
     flexDirection: 'row',
@@ -556,17 +468,6 @@ const styles = StyleSheet.create({
     color: Colors.textTertiary,
     fontFamily: Platform.OS === 'ios' ? 'Courier' : 'monospace',
   },
-  gaugeContainer: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 12,
-  },
-  verdictContainer: {
-    alignItems: 'center',
-    marginTop: 8,
-    marginBottom: 20,
-    paddingHorizontal: 8,
-  },
   archetypeBadge: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -574,138 +475,32 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 5,
     borderRadius: Radius.full,
-    marginBottom: 10,
+    marginTop: 8,
   },
   archetypeText: {
     fontSize: 12,
     fontWeight: '700',
     color: Colors.accentGold,
   },
-  verdictQuote: {
-    fontSize: 15,
-    lineHeight: 22,
-    color: Colors.textSecondary,
-    textAlign: 'center',
-    fontStyle: 'italic',
-  },
-  powerSection: {
-    paddingTop: 16,
-    borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: Colors.borderHairline,
-  },
-  powerLabelRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 8,
-  },
-  powerTitle: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: Colors.textSecondary,
-  },
-  powerStatus: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: Colors.textTertiary,
-  },
-  powerTrack: {
-    height: 6,
-    backgroundColor: Colors.secondaryBackground,
-    borderRadius: 3,
-    overflow: 'hidden',
-    marginBottom: 6,
-  },
-  powerFill: {
-    height: '100%',
-    backgroundColor: Colors.textPrimary,
-    borderRadius: 3,
-  },
-  powerStatsRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-  },
-  powerStatText: {
-    fontSize: 11,
-    color: Colors.textTertiary,
-  },
-  sectionHeaderRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 14,
-  },
-  sectionTitle: {
-    fontSize: 17,
-    fontWeight: '700',
-    letterSpacing: -0.3,
-    color: Colors.textPrimary,
-  },
-  mathBadge: {
-    backgroundColor: Colors.secondaryBackground,
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: Radius.full,
-  },
-  mathBadgeText: {
-    fontSize: 10,
-    fontWeight: '700',
-    letterSpacing: 0.6,
-    color: Colors.textTertiary,
-  },
-  metricGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 12,
-    marginBottom: 28,
-  },
-  metricCard: {
-    flex: 1,
-    minWidth: '46%',
-    padding: 16,
-    alignItems: 'center',
-  },
-  metricCardLabel: {
-    fontSize: 10,
-    fontWeight: '700',
-    letterSpacing: 0.6,
-    color: Colors.textTertiary,
-    marginBottom: 6,
-  },
-  metricCardValue: {
-    fontSize: 22,
-    fontWeight: '800',
-    letterSpacing: -0.5,
-    color: Colors.textPrimary,
-    marginBottom: 2,
-  },
-  metricCardSub: {
-    fontSize: 11,
-    color: Colors.textTertiary,
-  },
   shortcutsRow: {
     flexDirection: 'row',
     gap: 12,
-    marginBottom: 32,
   },
   shortcutCard: {
     flex: 1,
-    padding: 18,
+    padding: 16,
     alignItems: 'flex-start',
   },
   shortcutTitle: {
-    fontSize: 15,
+    fontSize: 14,
     fontWeight: '700',
     color: Colors.textPrimary,
     letterSpacing: -0.2,
     marginBottom: 2,
   },
   shortcutSub: {
-    fontSize: 12,
+    fontSize: 11,
     color: Colors.textTertiary,
-  },
-  dropzoneSection: {
-    marginBottom: 20,
   },
   modalOverlay: {
     flex: 1,

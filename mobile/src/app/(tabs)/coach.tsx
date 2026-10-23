@@ -19,14 +19,16 @@ import {
   Copy,
   Check,
   Shield,
-  Flame,
-  ArrowRight,
-  MessageSquare,
 } from 'lucide-react-native';
 
-import { Colors, Radius, Typography, Spacing } from '@/constants/theme';
-import { AppHeader } from '@/components/ui/AppHeader';
-import { AppleElevatedCard } from '@/components/ui/AppleElevatedCard';
+import { Colors, Radius, Spacing } from '@/constants/theme';
+import {
+  AppHeader,
+  SegmentedControl,
+  ReceiptQuote,
+  EditorialSection,
+  AppleElevatedCard,
+} from '@/components/ui';
 
 interface ChatMessage {
   id: string;
@@ -42,7 +44,7 @@ interface GhostReplyOption {
   replyText: string;
   strategy: string;
   toneTag: string;
-  toneColor: string;
+  accent: 'neutral' | 'rose' | 'gold';
 }
 
 const INITIAL_MESSAGES: ChatMessage[] = [
@@ -63,7 +65,7 @@ const DEFAULT_TRIAD: GhostReplyOption[] = [
     strategy:
       'Matches her exact low-investment energy. Zero exclamation marks, zero desperation. Refuses to chase.',
     toneTag: 'FRAME CONTROL',
-    toneColor: Colors.textPrimary,
+    accent: 'neutral',
   },
   {
     id: 'opt-2',
@@ -73,7 +75,7 @@ const DEFAULT_TRIAD: GhostReplyOption[] = [
     strategy:
       'Humorously calls out the 6-hour delay while keeping the dynamic light, teasing, and flirty.',
     toneTag: 'WITTY BANTER',
-    toneColor: Colors.accentRose,
+    accent: 'rose',
   },
   {
     id: 'opt-3',
@@ -83,7 +85,7 @@ const DEFAULT_TRIAD: GhostReplyOption[] = [
     strategy:
       'Bypasses endless messaging banter and tests immediate romantic compliance in the real world.',
     toneTag: 'HIGH EQ CLOSE',
-    toneColor: Colors.accentGold,
+    accent: 'gold',
   },
 ];
 
@@ -92,6 +94,11 @@ const QUICK_PROMPTS = [
   'Am I being breadcrumbed or actually busy?',
   'How do I regain leverage without playing games?',
   'Analyze her last voice note for subtext',
+];
+
+const COACH_MODES = [
+  { key: 'coach', label: 'Doctor Delulu', icon: Bot },
+  { key: 'ghost', label: 'Ghost Writer', icon: Zap },
 ];
 
 export default function CoachScreen() {
@@ -106,17 +113,6 @@ export default function CoachScreen() {
   const [copiedId, setCopiedId] = useState<string | null>(null);
 
   const scrollViewRef = useRef<any>(null);
-
-  const handleTabSwitch = (tab: 'coach' | 'ghost') => {
-    if (Platform.OS !== 'web') {
-      try {
-        Haptics.selectionAsync();
-      } catch {
-        // Haptics fallback
-      }
-    }
-    setActiveTab(tab);
-  };
 
   const handleSendCoach = () => {
     if (!inputMessage.trim()) return;
@@ -199,7 +195,7 @@ export default function CoachScreen() {
           replyText: `Got it. Let me know when you are free next week.`,
           strategy: `In response to "${customText.slice(0, 30)}...": Matches coldness with respectful detachment.`,
           toneTag: 'STOIC DETACHMENT',
-          toneColor: Colors.textPrimary,
+          accent: 'neutral',
         },
         {
           id: 'opt-gen-2',
@@ -208,7 +204,7 @@ export default function CoachScreen() {
           replyText: `That sounds like an excuse someone with terrible taste in cocktails would make 😂`,
           strategy: 'Re-establishes playful frame dominance instead of apologizing or begging.',
           toneTag: 'TEASING BANTER',
-          toneColor: Colors.accentRose,
+          accent: 'rose',
         },
         {
           id: 'opt-gen-3',
@@ -217,7 +213,7 @@ export default function CoachScreen() {
           replyText: `Let's skip the 20-question texting game. Grab dinner Thursday at 7:30?`,
           strategy: 'Forces binary clarity: either she accepts a real-world date or you save your time.',
           toneTag: 'HIGH EQ CLOSE',
-          toneColor: Colors.accentGold,
+          accent: 'gold',
         },
       ]);
     }
@@ -236,55 +232,14 @@ export default function CoachScreen() {
           behavior={Platform.OS === 'ios' ? 'padding' : undefined}
           style={styles.keyboardContainer}
         >
-          {/* Segmented Switcher Pill */}
-          <View style={styles.switcherContainer}>
-            <View style={styles.switcherPill}>
-              <TouchableOpacity
-                activeOpacity={0.9}
-                onPress={() => handleTabSwitch('coach')}
-                style={[
-                  styles.switcherTab,
-                  activeTab === 'coach' && styles.switcherTabActive,
-                ]}
-              >
-                <Bot
-                  size={14}
-                  color={activeTab === 'coach' ? Colors.textPrimary : Colors.textTertiary}
-                  style={{ marginRight: 6 }}
-                />
-                <Text
-                  style={[
-                    styles.switcherText,
-                    activeTab === 'coach' && styles.switcherTextActive,
-                  ]}
-                >
-                  Doctor Delulu
-                </Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                activeOpacity={0.9}
-                onPress={() => handleTabSwitch('ghost')}
-                style={[
-                  styles.switcherTab,
-                  activeTab === 'ghost' && styles.switcherTabActive,
-                ]}
-              >
-                <Zap
-                  size={14}
-                  color={activeTab === 'ghost' ? Colors.textPrimary : Colors.textTertiary}
-                  style={{ marginRight: 6 }}
-                />
-                <Text
-                  style={[
-                    styles.switcherText,
-                    activeTab === 'ghost' && styles.switcherTextActive,
-                  ]}
-                >
-                  Ghost Writer
-                </Text>
-              </TouchableOpacity>
-            </View>
+          {/* Unified Segmented Control */}
+          <View style={styles.switcherWrapper}>
+            <SegmentedControl
+              options={COACH_MODES}
+              value={activeTab}
+              onChange={(val) => setActiveTab(val as any)}
+              style={{ marginBottom: 0 }}
+            />
           </View>
 
           {/* TAB 1: DOCTOR DELULU INTERACTIVE CHAT */}
@@ -441,58 +396,61 @@ export default function CoachScreen() {
               </AppleElevatedCard>
 
               {/* Triad Options Feed */}
-              <Text style={styles.triadSectionTitle}>CALIBRATED TACTICAL REPLIES</Text>
-
-              {triadOptions.map((opt) => {
-                const isCopied = copiedId === opt.id;
-                return (
-                  <AppleElevatedCard key={opt.id} style={styles.triadCard}>
-                    <View style={styles.triadHeader}>
-                      <View style={styles.triadTagRow}>
-                        <View style={styles.toneBadge}>
-                          <Text style={styles.toneBadgeText}>{opt.toneTag}</Text>
+              <EditorialSection title="Calibrated Tactical Replies">
+                {triadOptions.map((opt) => {
+                  const isCopied = copiedId === opt.id;
+                  return (
+                    <AppleElevatedCard key={opt.id} style={styles.triadCard}>
+                      <View style={styles.triadHeader}>
+                        <View style={styles.triadTagRow}>
+                          <View style={styles.toneBadge}>
+                            <Text style={styles.toneBadgeText}>{opt.toneTag}</Text>
+                          </View>
+                          <Text style={styles.triadCategory}>{opt.category}</Text>
                         </View>
-                        <Text style={styles.triadCategory}>{opt.category}</Text>
+                        <Text style={styles.triadTitle}>{opt.title}</Text>
                       </View>
-                      <Text style={styles.triadTitle}>{opt.title}</Text>
-                    </View>
 
-                    {/* Quotation text */}
-                    <View style={styles.replyBox}>
-                      <Text style={styles.replyQuote}>"{opt.replyText}"</Text>
-                    </View>
+                      {/* Unified Borderless ReceiptQuote */}
+                      <ReceiptQuote
+                        quote={opt.replyText}
+                        accentVariant={opt.accent}
+                        label=""
+                        style={{ marginVertical: 8 }}
+                      />
 
-                    {/* Tactical Strategy */}
-                    <Text style={styles.strategyText}>{opt.strategy}</Text>
+                      {/* Tactical Strategy */}
+                      <Text style={styles.strategyText}>{opt.strategy}</Text>
 
-                    {/* Action Footer */}
-                    <View style={styles.triadFooter}>
-                      <TouchableOpacity
-                        activeOpacity={0.85}
-                        onPress={() => handleCopyReply(opt)}
-                        style={[
-                          styles.copyButton,
-                          isCopied && styles.copyButtonDone,
-                        ]}
-                      >
-                        {isCopied ? (
-                          <>
-                            <Check size={14} color={Colors.systemGreen} style={{ marginRight: 6 }} />
-                            <Text style={[styles.copyButtonText, { color: Colors.systemGreen }]}>
-                              Copied to Clipboard
-                            </Text>
-                          </>
-                        ) : (
-                          <>
-                            <Copy size={14} color={Colors.textPrimary} style={{ marginRight: 6 }} />
-                            <Text style={styles.copyButtonText}>Copy to Clipboard</Text>
-                          </>
-                        )}
-                      </TouchableOpacity>
-                    </View>
-                  </AppleElevatedCard>
-                );
-              })}
+                      {/* Action Footer */}
+                      <View style={styles.triadFooter}>
+                        <TouchableOpacity
+                          activeOpacity={0.85}
+                          onPress={() => handleCopyReply(opt)}
+                          style={[
+                            styles.copyButton,
+                            isCopied && styles.copyButtonDone,
+                          ]}
+                        >
+                          {isCopied ? (
+                            <>
+                              <Check size={14} color={Colors.systemGreen} style={{ marginRight: 6 }} />
+                              <Text style={[styles.copyButtonText, { color: Colors.systemGreen }]}>
+                                Copied to Clipboard
+                              </Text>
+                            </>
+                          ) : (
+                            <>
+                              <Copy size={14} color={Colors.textPrimary} style={{ marginRight: 6 }} />
+                              <Text style={styles.copyButtonText}>Copy to Clipboard</Text>
+                            </>
+                          )}
+                        </TouchableOpacity>
+                      </View>
+                    </AppleElevatedCard>
+                  );
+                })}
+              </EditorialSection>
             </ScrollView>
           )}
         </KeyboardAvoidingView>
@@ -524,50 +482,10 @@ const styles = StyleSheet.create({
   keyboardContainer: {
     flex: 1,
   },
-  switcherContainer: {
+  switcherWrapper: {
     paddingHorizontal: Spacing.screenGutter,
-    paddingVertical: 12,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: Colors.borderHairline,
-  },
-  switcherPill: {
-    flexDirection: 'row',
-    backgroundColor: Colors.secondaryBackground,
-    borderRadius: Radius.full,
-    padding: 3,
-    borderWidth: 1,
-    borderColor: Colors.borderHairline,
-  },
-  switcherTab: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 8,
-    borderRadius: Radius.full,
-  },
-  switcherTabActive: {
-    backgroundColor: '#FFFFFF',
-    ...Platform.select({
-      ios: {
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.08,
-        shadowRadius: 4,
-      },
-      web: {
-        boxShadow: '0 2px 6px rgba(0, 0, 0, 0.06)',
-      } as any,
-    }),
-  },
-  switcherText: {
-    fontSize: 13,
-    fontWeight: '500',
-    color: Colors.textTertiary,
-  },
-  switcherTextActive: {
-    color: Colors.textPrimary,
-    fontWeight: '700',
+    paddingTop: 10,
+    paddingBottom: 4,
   },
   tabContent: {
     flex: 1,
@@ -785,26 +703,18 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: Colors.textInverted,
   },
-  triadSectionTitle: {
-    fontSize: 11,
-    fontWeight: '700',
-    letterSpacing: 0.8,
-    color: Colors.textTertiary,
-    marginBottom: 12,
-    marginLeft: 4,
-  },
   triadCard: {
-    padding: 20,
+    padding: 18,
     marginBottom: 16,
   },
   triadHeader: {
-    marginBottom: 12,
+    marginBottom: 8,
   },
   triadTagRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 6,
+    marginBottom: 4,
   },
   toneBadge: {
     backgroundColor: Colors.secondaryBackground,
@@ -824,31 +734,17 @@ const styles = StyleSheet.create({
     color: Colors.textTertiary,
   },
   triadTitle: {
-    fontSize: 17,
+    fontSize: 16,
     fontWeight: '700',
     letterSpacing: -0.3,
     color: Colors.textPrimary,
   },
-  replyBox: {
-    backgroundColor: Colors.secondaryBackground,
-    borderRadius: Radius.md,
-    padding: 14,
-    marginBottom: 12,
-    borderWidth: 1,
-    borderColor: Colors.borderHairline,
-  },
-  replyQuote: {
-    fontSize: 15,
-    lineHeight: 22,
-    fontStyle: 'italic',
-    color: Colors.textPrimary,
-    fontWeight: '500',
-  },
   strategyText: {
-    fontSize: 13,
-    lineHeight: 19,
+    fontSize: 12,
+    lineHeight: 18,
     color: Colors.textTertiary,
-    marginBottom: 16,
+    marginTop: 8,
+    marginBottom: 14,
   },
   triadFooter: {
     borderTopWidth: StyleSheet.hairlineWidth,

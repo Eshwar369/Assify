@@ -3,12 +3,10 @@ import {
   View,
   Text,
   StyleSheet,
-  ScrollView,
   TouchableOpacity,
-  ActivityIndicator,
   RefreshControl,
-  SafeAreaView,
   Platform,
+  ScrollView,
 } from 'react-native';
 import * as Haptics from 'expo-haptics';
 import {
@@ -21,14 +19,17 @@ import {
   Circle,
   Sparkles,
   Bookmark,
-  Share2,
 } from 'lucide-react-native';
 
-import { Colors, Radius, Typography, Spacing } from '@/constants/theme';
-import { AppHeader } from '@/components/ui/AppHeader';
-import { AppleElevatedCard } from '@/components/ui/AppleElevatedCard';
+import { Colors, Radius } from '@/constants/theme';
+import {
+  ScreenContainer,
+  AppHeader,
+  ReceiptQuote,
+  EditorialSection,
+  AppleElevatedCard,
+} from '@/components/ui';
 import { getContacts, getKeepVault, KeepItem } from '@/services/api';
-import { useTabBar } from '@/context/TabBarContext';
 
 const CATEGORIES = [
   { key: 'all', label: 'All Vault' },
@@ -103,7 +104,6 @@ export default function KeepScreen() {
   const [completedIds, setCompletedIds] = useState<Set<number>>(new Set());
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  const { handleScroll } = useTabBar();
 
   const loadKeepData = async () => {
     try {
@@ -191,168 +191,132 @@ export default function KeepScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.safeArea}>
-      <View style={styles.desktopCanvas}>
+    <ScreenContainer
+      header={
         <AppHeader
           title="The Keep"
           subtitle="Partner Vault & Receipts"
           activePartner="Sarah"
         />
+      }
+      refreshControl={
+        <RefreshControl
+          refreshing={refreshing}
+          onRefresh={onRefresh}
+          tintColor={Colors.accentGold}
+        />
+      }
+    >
+      {/* Hero Overview */}
+      <View style={styles.heroSection}>
+        <View style={styles.heroHeader}>
+          <View style={styles.statusBadge}>
+            <Sparkles size={12} color={Colors.accentGold} style={{ marginRight: 4 }} />
+            <Text style={styles.statusBadgeText}>AUTOMATED VAULT</Text>
+          </View>
+          <Text style={styles.vaultCounter}>
+            {completedIds.size}/{items.length} Completed
+          </Text>
+        </View>
 
-        <ScrollView
-          style={styles.container}
-          contentContainerStyle={styles.scrollContent}
-          showsVerticalScrollIndicator={false}
-          onScroll={handleScroll}
-          scrollEventThrottle={16}
-          refreshControl={
-            <RefreshControl
-              refreshing={refreshing}
-              onRefresh={onRefresh}
-              tintColor={Colors.accentGold}
-            />
-          }
-        >
-          {/* Hero Vault Status Card */}
-          <AppleElevatedCard floating style={styles.heroCard}>
-            <View style={styles.heroHeader}>
-              <View style={styles.statusBadge}>
-                <Sparkles size={12} color={Colors.accentGold} style={{ marginRight: 4 }} />
-                <Text style={styles.statusBadgeText}>AUTOMATED VAULT</Text>
-              </View>
-              <Text style={styles.vaultCounter}>
-                {completedIds.size}/{items.length} Completed
+        <Text style={styles.heroTitle}>Partner Preferences Ledger</Text>
+        <Text style={styles.heroSub}>
+          Everything Sarah casually mentioned in conversation: wishlist items, date spots, food cravings, and red lines mined with verified chat receipts.
+        </Text>
+      </View>
+
+      {/* Category Filter Pills */}
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        style={styles.filterScroll}
+        contentContainerStyle={styles.filterContent}
+      >
+        {CATEGORIES.map((cat) => {
+          const active = selectedCategory === cat.key;
+          return (
+            <TouchableOpacity
+              key={cat.key}
+              activeOpacity={0.8}
+              onPress={() => handleCategoryPress(cat.key)}
+              style={[styles.filterPill, active && styles.filterPillActive]}
+            >
+              <Text style={[styles.filterPillText, active && styles.filterPillTextActive]}>
+                {cat.label}
               </Text>
-            </View>
+            </TouchableOpacity>
+          );
+        })}
+      </ScrollView>
 
-            <Text style={styles.heroTitle}>Partner Preferences Ledger</Text>
-            <Text style={styles.heroSub}>
-              Everything Sarah casually mentioned in conversation: wishlist items, date spots, food cravings, and red lines mined with verified chat receipts.
-            </Text>
-          </AppleElevatedCard>
+      {/* Keep Items Feed */}
+      <EditorialSection title="Captured Preferences">
+        <View style={styles.itemsList}>
+          {filteredItems.map((item) => {
+            const isCompleted = completedIds.has(item.id);
 
-          {/* Category Filter Pills */}
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            style={styles.filterScroll}
-            contentContainerStyle={styles.filterContent}
-          >
-            {CATEGORIES.map((cat) => {
-              const active = selectedCategory === cat.key;
-              return (
-                <TouchableOpacity
-                  key={cat.key}
-                  activeOpacity={0.8}
-                  onPress={() => handleCategoryPress(cat.key)}
-                  style={[styles.filterPill, active && styles.filterPillActive]}
-                >
-                  <Text style={[styles.filterPillText, active && styles.filterPillTextActive]}>
-                    {cat.label}
-                  </Text>
-                </TouchableOpacity>
-              );
-            })}
-          </ScrollView>
+            return (
+              <AppleElevatedCard
+                key={item.id}
+                style={styles.itemCard}
+                accentVariant={isCompleted ? 'success' : 'none'}
+              >
+                <View style={styles.itemTopRow}>
+                  <TouchableOpacity
+                    activeOpacity={0.7}
+                    onPress={() => handleToggleComplete(item.id)}
+                    style={styles.checkboxTouch}
+                  >
+                    {isCompleted ? (
+                      <CheckCircle2 size={22} color={Colors.systemGreen} />
+                    ) : (
+                      <Circle size={22} color={Colors.borderCard} />
+                    )}
+                  </TouchableOpacity>
 
-          {/* Keep Items Feed */}
-          <View style={styles.itemsList}>
-            {filteredItems.map((item) => {
-              const isCompleted = completedIds.has(item.id);
-
-              return (
-                <AppleElevatedCard
-                  key={item.id}
-                  style={styles.itemCard}
-                  accentVariant={isCompleted ? 'success' : 'none'}
-                >
-                  {/* Top Item Row */}
-                  <View style={styles.itemTopRow}>
-                    <TouchableOpacity
-                      activeOpacity={0.7}
-                      onPress={() => handleToggleComplete(item.id)}
-                      style={styles.checkboxTouch}
-                    >
-                      {isCompleted ? (
-                        <CheckCircle2 size={22} color={Colors.systemGreen} />
-                      ) : (
-                        <Circle size={22} color={Colors.borderCard} />
-                      )}
-                    </TouchableOpacity>
-
-                    <View style={styles.itemTitleContainer}>
-                      <View style={styles.itemCategoryRow}>
-                        {getCategoryIcon(item.category)}
-                        <Text style={styles.itemCategoryLabel}>
-                          {item.category.toUpperCase()}
-                        </Text>
-                      </View>
-                      <Text
-                        style={[
-                          styles.itemName,
-                          isCompleted && styles.itemNameCompleted,
-                        ]}
-                      >
-                        {item.item_name}
+                  <View style={styles.itemTitleContainer}>
+                    <View style={styles.itemCategoryRow}>
+                      {getCategoryIcon(item.category)}
+                      <Text style={styles.itemCategoryLabel}>
+                        {item.category.toUpperCase()}
                       </Text>
                     </View>
+                    <Text
+                      style={[
+                        styles.itemName,
+                        isCompleted && styles.itemNameCompleted,
+                      ]}
+                    >
+                      {item.item_name}
+                    </Text>
                   </View>
+                </View>
 
-                  {/* Context Receipt Callout */}
-                  <View style={styles.receiptContainer}>
-                    <View style={styles.receiptHeader}>
-                      <Text style={styles.receiptTag}>VERIFIED RECEIPT</Text>
-                      <Text style={styles.receiptTimestamp}>{item.time_stamp}</Text>
-                    </View>
-                    <Text style={styles.receiptQuote}>"{item.context_quote}"</Text>
-                  </View>
-                </AppleElevatedCard>
-              );
-            })}
-          </View>
-        </ScrollView>
-      </View>
-    </SafeAreaView>
+                {/* Unified Borderless ReceiptQuote */}
+                <ReceiptQuote
+                  quote={item.context_quote}
+                  timestamp={item.time_stamp}
+                  accentVariant={isCompleted ? 'neutral' : 'gold'}
+                />
+              </AppleElevatedCard>
+            );
+          })}
+        </View>
+      </EditorialSection>
+    </ScreenContainer>
   );
 }
 
 const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: Colors.background,
-  },
-  desktopCanvas: {
-    flex: 1,
-    width: '100%',
-    maxWidth: 480,
-    alignSelf: 'center',
-    backgroundColor: Colors.background,
-    ...Platform.select({
-      web: {
-        borderLeftWidth: 1,
-        borderRightWidth: 1,
-        borderColor: Colors.borderHairline,
-        minHeight: '100vh',
-      } as any,
-    }),
-  },
-  container: {
-    flex: 1,
-  },
-  scrollContent: {
-    paddingHorizontal: Spacing.screenGutter,
-    paddingTop: 16,
-    paddingBottom: 110,
-  },
-  heroCard: {
-    padding: 22,
-    marginBottom: 24,
+  heroSection: {
+    paddingTop: 8,
+    paddingBottom: 16,
   },
   heroHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 10,
+    marginBottom: 8,
   },
   statusBadge: {
     flexDirection: 'row',
@@ -374,7 +338,7 @@ const styles = StyleSheet.create({
     color: Colors.textTertiary,
   },
   heroTitle: {
-    fontSize: 20,
+    fontSize: 22,
     fontWeight: '800',
     letterSpacing: -0.4,
     color: Colors.textPrimary,
@@ -384,9 +348,10 @@ const styles = StyleSheet.create({
     fontSize: 13,
     lineHeight: 19,
     color: Colors.textSecondary,
+    marginBottom: 16,
   },
   filterScroll: {
-    marginBottom: 20,
+    marginBottom: 24,
   },
   filterContent: {
     gap: 8,
@@ -416,12 +381,12 @@ const styles = StyleSheet.create({
     gap: 16,
   },
   itemCard: {
-    padding: 18,
+    padding: 16,
   },
   itemTopRow: {
     flexDirection: 'row',
     alignItems: 'flex-start',
-    marginBottom: 14,
+    marginBottom: 10,
   },
   checkboxTouch: {
     marginRight: 12,
@@ -451,33 +416,5 @@ const styles = StyleSheet.create({
   itemNameCompleted: {
     textDecorationLine: 'line-through',
     color: Colors.textTertiary,
-  },
-  receiptContainer: {
-    backgroundColor: Colors.secondaryBackground,
-    borderRadius: Radius.md,
-    padding: 12,
-    borderWidth: 1,
-    borderColor: Colors.borderHairline,
-  },
-  receiptHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 4,
-  },
-  receiptTag: {
-    fontSize: 9,
-    fontWeight: '700',
-    letterSpacing: 0.6,
-    color: Colors.accentGold,
-  },
-  receiptTimestamp: {
-    fontSize: 10,
-    color: Colors.textTertiary,
-  },
-  receiptQuote: {
-    fontSize: 13,
-    fontStyle: 'italic',
-    lineHeight: 18,
-    color: Colors.textSecondary,
   },
 });
