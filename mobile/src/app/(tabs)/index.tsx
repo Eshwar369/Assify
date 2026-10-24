@@ -6,9 +6,7 @@ import {
   ActivityIndicator,
   RefreshControl,
   Platform,
-  Modal,
   TouchableOpacity,
-  ScrollView,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import * as Haptics from 'expo-haptics';
@@ -17,8 +15,6 @@ import {
   Sparkles,
   ChevronRight,
   Layers,
-  Check,
-  X,
   MessageCircle,
 } from 'lucide-react-native';
 
@@ -33,13 +29,16 @@ import {
   LightDeluluGauge,
   AppleElevatedCard,
 } from '@/components/ui';
-import { WhatsAppDropzone } from '@/components/WhatsAppDropzone';
+import { WhatsAppDropzone, PickedFileInfo } from '@/components/WhatsAppDropzone';
 import {
   getContacts,
   getReportDossier,
+  uploadChatArchive,
+  pollTaskStatus,
   Contact,
   ReportDossierResponse,
 } from '@/services/api';
+import { AlertCircle } from 'lucide-react-native';
 
 const VIBE_OPTIONS = [
   { key: 'unhinged', label: 'Unhinged Roast', icon: Flame },
@@ -57,6 +56,9 @@ export default function RadarScreen() {
   const [vibeMode, setVibeMode] = useState<'therapy' | 'unhinged'>('unhinged');
   const [showContactPicker, setShowContactPicker] = useState(false);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [analysisProgress, setAnalysisProgress] = useState(0);
+  const [analysisStep, setAnalysisStep] = useState('Preparing upload...');
+  const [analysisError, setAnalysisError] = useState<string | null>(null);
 
   const loadData = async (targetContactId?: string) => {
     try {
@@ -113,19 +115,72 @@ export default function RadarScreen() {
     loadData(contact.id);
   };
 
-  const handleFileDrop = (file: { name: string }) => {
-    setIsAnalyzing(true);
-    if (Platform.OS !== 'web') {
-      try {
-        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-      } catch {
-        // Haptics fallback
+  const handleFileDrop = async (file: PickedFileInfo) => {
+    try {
+      setIsAnalyzing(true);
+      setAnalysisProgress(5);
+      setAnalysisStep('Uploading chat archive to ASSIFY backend...');
+      setAnalysisError(null);
+
+      const uploadRes = await uploadChatArchive(file.uri, file.name, vibeMode);
+      const taskId = uploadRes.task_id;
+      setAnalysisStep(uploadRes.current_step || 'Analysis queued...');
+
+      const pollInterval = 1000;
+      const maxPollTime = 180000; // 3 minutes maximum
+      const startTime = Date.now();
+
+      const timerId = setInterval(async () => {
+        try {
+          if (Date.now() - startTime > maxPollTime) {
+            clearInterval(timerId);
+            setIsAnalyzing(false);
+            setAnalysisError('Analysis timed out. Please check backend server.');
+            return;
+          }
+
+          const statusData = await pollTaskStatus(taskId);
+          setAnalysisProgress(statusData.progress);
+          setAnalysisStep(statusData.current_step);
+
+          if (statusData.status === 'completed') {
+            clearInterval(timerId);
+            setIsAnalyzing(false);
+            setAnalysisProgress(100);
+            setAnalysisStep('Analysis completed!');
+
+            if (Platform.OS !== 'web') {
+              try {
+                await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+              } catch {}
+            }
+
+            const newContactId = statusData.result?.contact_id;
+            await loadData(newContactId);
+          } else if (statusData.status === 'failed') {
+            clearInterval(timerId);
+            setIsAnalyzing(false);
+            setAnalysisError(statusData.error || 'Ingestion failed on backend');
+
+            if (Platform.OS !== 'web') {
+              try {
+                await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+              } catch {}
+            }
+          }
+        } catch (pollErr: any) {
+          console.warn('Status poll warning:', pollErr);
+        }
+      }, pollInterval);
+    } catch (err: any) {
+      setIsAnalyzing(false);
+      setAnalysisError(err?.message || 'Failed to upload chat file');
+      if (Platform.OS !== 'web') {
+        try {
+          await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+        } catch {}
       }
     }
-    setTimeout(() => {
-      setIsAnalyzing(false);
-      loadData(activeContact?.id);
-    }, 1200);
   };
 
   if (loading && !refreshing) {
@@ -303,65 +358,17 @@ export default function RadarScreen() {
           onVibeModeChange={setVibeMode}
           onFileSelect={handleFileDrop}
           isAnalyzing={isAnalyzing}
+          progress={analysisProgress}
+          currentStep={analysisStep}
         />
-      </EditorialSection>
 
-      {/* Contact Picker Modal */}
-      <Modal
-        visible={showContactPicker}
-        transparent
-        animationType="fade"
-        onRequestClose={() => setShowContactPicker(false)}
-      >
-        <TouchableOpacity
-          activeOpacity={1}
-          onPress={() => setShowContactPicker(false)}
-          style={styles.modalOverlay}
-        >
-          <View style={styles.modalSheet}>
-            <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Select Audited Contact</Text>
-              <TouchableOpacity
-                onPress={() => setShowContactPicker(false)}
-                style={styles.modalCloseBtn}
-              >
-                <X size={18} color={Colors.textSecondary} />
-              </TouchableOpacity>
-            </View>
-
-            <ScrollView style={{ maxHeight: 320 }}>
-              {contacts.map((contact) => (
-                <TouchableOpacity
-                  key={contact.id}
-                  activeOpacity={0.8}
-                  onPress={() => handleSelectContact(contact)}
-                  style={[
-                    styles.contactItem,
-                    activeContact?.id === contact.id && styles.contactItemActive,
-                  ]}
-                >
-                  <View style={styles.contactAvatar}>
-                    <Text style={styles.contactAvatarText}>
-                      {contact.display_name.charAt(0).toUpperCase()}
-                    </Text>
-                  </View>
-                  <View style={{ flex: 1 }}>
-                    <Text style={styles.contactItemName}>{contact.display_name}</Text>
-                    <Text style={styles.contactItemSub}>
-                      {contact.created_at
-                        ? `Audited since ${contact.created_at.slice(0, 10)}`
-                        : 'Verified Chat Log'}
-                    </Text>
-                  </View>
-                  {activeContact?.id === contact.id ? (
-                    <Check size={18} color={Colors.accentGold} />
-                  ) : null}
-                </TouchableOpacity>
-              ))}
-            </ScrollView>
+        {analysisError && (
+          <View style={styles.errorBanner}>
+            <AlertCircle size={16} color={Colors.accentRose} style={{ marginRight: 8 }} />
+            <Text style={styles.errorText}>{analysisError}</Text>
           </View>
-        </TouchableOpacity>
-      </Modal>
+        )}
+      </EditorialSection>
     </ScreenContainer>
   );
 }
@@ -513,72 +520,22 @@ const styles = StyleSheet.create({
     fontSize: 11,
     color: Colors.textTertiary,
   },
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.40)',
-    justifyContent: 'flex-end',
-  },
-  modalSheet: {
-    backgroundColor: Colors.background,
-    borderTopLeftRadius: Radius.xl,
-    borderTopRightRadius: Radius.xl,
-    paddingHorizontal: 24,
-    paddingTop: 20,
-    paddingBottom: 40,
-  },
-  modalHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 16,
-  },
-  modalTitle: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: Colors.textPrimary,
-  },
-  modalCloseBtn: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: Colors.secondaryBackground,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  contactItem: {
+  errorBanner: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 12,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: Colors.borderHairline,
-  },
-  contactItemActive: {
-    backgroundColor: Colors.secondaryBackground,
+    backgroundColor: Colors.accentRoseSoft,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
     borderRadius: Radius.md,
-    paddingHorizontal: 8,
+    marginTop: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(235, 87, 87, 0.25)',
   },
-  contactAvatar: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: Colors.secondaryBackground,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: 12,
-  },
-  contactAvatarText: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: Colors.textPrimary,
-  },
-  contactItemName: {
-    fontSize: 15,
-    fontWeight: '600',
-    color: Colors.textPrimary,
-  },
-  contactItemSub: {
+  errorText: {
+    flex: 1,
     fontSize: 12,
-    color: Colors.textTertiary,
-    marginTop: 2,
+    fontWeight: '600',
+    color: Colors.accentRose,
+    lineHeight: 16,
   },
 });

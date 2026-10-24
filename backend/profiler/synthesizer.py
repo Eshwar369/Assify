@@ -10,6 +10,7 @@ ROOT_DIR = Path(__file__).resolve().parent.parent.parent
 sys.path.insert(0, str(ROOT_DIR))
 
 from backend.database.db import get_db_connection
+from backend.ingestion.sanitizer import sanitize_text
 from backend.profiler.acts_schemas import (
     RelationshipProfileDossier,
     Act1Opening,
@@ -114,7 +115,12 @@ NON-NEGOTIABLE ARCHETYPE & POWER BOUNDS:
 # ==============================================================================
 # DYNAMIC 4-EPOCH RELATIONAL SAMPLER
 # ==============================================================================
-def sample_representative_messages(messages: List[Dict], max_messages: int = 200) -> str:
+def sample_representative_messages(
+    messages: List[Dict],
+    max_messages: int = 200,
+    user_name: Optional[str] = None,
+    contact_name: Optional[str] = None,
+) -> str:
     """
     Partitions the full conversation into 4 distinct chronological Epochs:
     - Epoch 1: Genesis & Inception (First 15% | Early calibration & first spark)
@@ -179,7 +185,12 @@ def sample_representative_messages(messages: List[Dict], max_messages: int = 200
             sender = m.get("sender", "unknown")
             content = m.get("content", "").replace("\n", " ").strip()
             if content and "<media omitted>" not in content.lower():
-                lines.append(f"[{ts}] {sender.upper()}: {content[:180]}")
+                clean_content = sanitize_text(
+                    content[:180],
+                    user_name=user_name,
+                    contact_name=contact_name,
+                )
+                lines.append(f"[{ts}] {sender.upper()}: {clean_content}")
         output_blocks.append("\n".join(lines))
 
     return "\n".join(output_blocks)
@@ -236,7 +247,12 @@ class ProfilerSynthesizer:
             contact = dict(contact_row)
             stats = dict(stats_row)
 
-            sample_chat_text = sample_representative_messages(messages, max_messages=200)
+            sample_chat_text = sample_representative_messages(
+                messages,
+                max_messages=200,
+                user_name=contact.get("user_name"),
+                contact_name=contact.get("display_name") or contact.get("raw_name"),
+            )
             grounding_matrix = build_grounding_matrix(contact, stats)
             tone_prompt = get_tone_system_prompt(vibe_mode)
 

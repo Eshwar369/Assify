@@ -154,3 +154,23 @@ CREATE TABLE IF NOT EXISTS preferences_vault (
 );
 CREATE INDEX IF NOT EXISTS idx_pref_contact_cat ON preferences_vault(contact_id, category);
 
+-- 11. Persistent Background Ingestion & Analysis Tasks
+CREATE TABLE IF NOT EXISTS ingestion_tasks (
+    task_id             TEXT PRIMARY KEY,
+    status              TEXT NOT NULL CHECK(status IN ('queued', 'in_progress', 'completed', 'failed')),
+    progress            INTEGER NOT NULL DEFAULT 0 CHECK(progress >= 0 AND progress <= 100),
+    current_step        TEXT NOT NULL,
+    error               TEXT,
+    result_json         TEXT,                      -- Serialized JSON dictionary of results
+    file_name           TEXT,
+    file_size_bytes     INTEGER,
+    contact_id          TEXT,                      -- Linked once contact row is created
+    vibe_mode           TEXT DEFAULT 'unhinged',
+    created_at          DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at          DATETIME DEFAULT CURRENT_TIMESTAMP,
+    completed_at        DATETIME,
+    FOREIGN KEY(contact_id) REFERENCES contacts(id) ON DELETE SET NULL
+);
+CREATE INDEX IF NOT EXISTS idx_tasks_status ON ingestion_tasks(status);
+CREATE INDEX IF NOT EXISTS idx_tasks_updated ON ingestion_tasks(updated_at DESC);
+

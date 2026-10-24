@@ -1,7 +1,20 @@
 import { Platform } from 'react-native';
+import Constants from 'expo-constants';
 
-const LOCAL_HOST = Platform.OS === 'android' ? '10.0.2.2' : '127.0.0.1';
-export const BASE_API_URL = `http://${LOCAL_HOST}:8000/api`;
+function resolveApiBaseUrl(): string {
+  if (process.env.EXPO_PUBLIC_API_URL) {
+    return process.env.EXPO_PUBLIC_API_URL;
+  }
+  const hostUri = Constants.expoConfig?.hostUri;
+  if (hostUri) {
+    const host = hostUri.split(':')[0];
+    return `http://${host}:8000/api`;
+  }
+  const fallbackHost = Platform.OS === 'android' ? '10.0.2.2' : '127.0.0.1';
+  return `http://${fallbackHost}:8000/api`;
+}
+
+export const BASE_API_URL = resolveApiBaseUrl();
 
 export interface Contact {
   id: string;
@@ -70,6 +83,34 @@ export interface KeepItem {
   target_person: 'user' | 'contact' | 'both';
   ai_generated: number;
   metadata?: string;
+}
+
+export interface UploadChatResponse {
+  status: 'queued' | 'in_progress';
+  task_id: string;
+  progress: number;
+  current_step: string;
+}
+
+export interface TaskStatusResponse {
+  task_id: string;
+  status: 'queued' | 'in_progress' | 'completed' | 'failed';
+  progress: number;
+  current_step: string;
+  error?: string | null;
+  result?: {
+    contact_id: string;
+    display_name: string;
+    total_messages: number;
+    delulu_score: number | null;
+    status_label: string | null;
+    power_ratio_user: number | null;
+    power_ratio_contact: number | null;
+    keep_items_found: number;
+    timing?: Record<string, any>;
+  } | null;
+  created_at?: number;
+  updated_at?: number;
 }
 
 // ==============================================================================
@@ -172,7 +213,7 @@ const FALLBACK_KEEP_ITEMS: KeepItem[] = [
   },
 ];
 
-async function fetchWithTimeout(url: string, timeoutMs: number = 2500): Promise<Response> {
+async function fetchWithTimeout(url: string, timeoutMs: number = 10000): Promise<Response> {
   const controller = new AbortController();
   const id = setTimeout(() => controller.abort(), timeoutMs);
   try {
@@ -183,6 +224,61 @@ async function fetchWithTimeout(url: string, timeoutMs: number = 2500): Promise<
     clearTimeout(id);
     throw error;
   }
+}
+
+/**
+ * Upload a real WhatsApp .txt or .zip chat export and initiate asynchronous background processing.
+ */
+export async function uploadChatArchive(
+  fileUri: string,
+  fileName: string,
+  vibeMode: 'therapy' | 'unhinged' = 'unhinged',
+  contactDisplayName?: string,
+  userSender?: string
+): Promise<UploadChatResponse> {
+  const formData = new FormData();
+
+  formData.append('file', {
+    uri: fileUri,
+    name: fileName,
+    type: fileName.toLowerCase().endsWith('.zip') ? 'application/zip' : 'text/plain',
+  } as any);
+
+  formData.append('vibe_mode', vibeMode);
+  formData.append('run_profiler', 'true');
+  if (contactDisplayName) {
+    formData.append('contact_display_name', contactDisplayName);
+  }
+  if (userSender) {
+    formData.append('user_sender', userSender);
+  }
+
+  const resp = await fetch(`${BASE_API_URL}/upload`, {
+    method: 'POST',
+    body: formData,
+    headers: {
+      Accept: 'application/json',
+    },
+  });
+
+  if (!resp.ok && resp.status !== 202) {
+    const errBody = await resp.json().catch(() => ({}));
+    throw new Error(errBody.detail || `Upload failed with HTTP ${resp.status}`);
+  }
+
+  return await resp.json();
+}
+
+/**
+ * Poll the progress and result of an active ingestion task.
+ */
+export async function pollTaskStatus(taskId: string): Promise<TaskStatusResponse> {
+  const resp = await fetchWithTimeout(`${BASE_API_URL}/status/${taskId}`, 8000);
+  if (!resp.ok) {
+    const errBody = await resp.json().catch(() => ({}));
+    throw new Error(errBody.detail || `Failed to fetch status for task ${taskId}`);
+  }
+  return await resp.json();
 }
 
 /**

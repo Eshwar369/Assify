@@ -149,11 +149,41 @@
 
 ---
 
+## 🛡️ Sprint 5.7 — Eliminate the "Truman Show": Real Ingestion, Async Polling & PII-Safe Pipeline
+- [x] `[P0]` **Pre-LLM PII Sanitization Engine** (`backend/ingestion/sanitizer.py`):
+  - Strips phone numbers (international, US, and Indian 10-digit formats).
+  - Strips email addresses.
+  - Strips 16-digit card numbers and UPI handles (`@oksbi`, `@paytm`, `@okhdfcbank`, etc.).
+  - Deterministically maps participant names to tokens (`[USER]`, `[PARTNER]`).
+  - Integrated into `sample_representative_messages` in `backend/profiler/synthesizer.py` across all 4 LLM passes.
+- [x] `[P0]` **Parser Hardening** (`backend/ingestion/parser.py`):
+  - Replaced process-salted `hash()` with deterministic MD5 8-character hex message IDs (Bug 6.1).
+  - Added full support for 24-hour seconds timestamps (`%d/%m/%y, %H:%M:%S`, `%d/%m/%Y, %H:%M:%S`, `%Y-%m-%d, %H:%M:%S`) preventing timestamp sorting corruption (Bug 6.2).
+- [x] `[P0]` **Asynchronous Background Job & Status Polling Pipeline** (`backend/api/ingest.py`, `backend/main.py`):
+  - Converted `POST /api/ingest/upload` (and alias `POST /api/upload`) to return HTTP 202 Accepted immediately.
+  - Offloaded long-running analysis to a dedicated `ThreadPoolExecutor` worker, eliminating FastAPI event-loop blocking (Flaw 3.1).
+  - Implemented real polling endpoint `GET /api/status/{task_id}` and `GET /api/ingest/status/{task_id}` returning progress stages (10%, 30%, 55%, 80%, 100%).
+- [x] `[P0]` **Mobile Client Dynamic Networking & Ingestion Client** (`mobile/src/services/api.ts`):
+  - Replaced hardcoded `10.0.2.2` with dynamic packager host resolution (`Constants.expoConfig?.hostUri` / `EXPO_PUBLIC_API_URL`).
+  - Implemented `uploadChatArchive()` with real multipart `FormData` upload.
+  - Implemented `pollTaskStatus()` with structured status typing.
+- [x] `[P0]` **Native Document Picker & Reanimated Progress Tracker** (`mobile/src/components/WhatsAppDropzone.tsx`, `index.tsx`):
+  - Installed and wired `expo-document-picker` for real `.txt` and `.zip` file picking, eliminating the hardcoded `_chat_sleepless_zombiee.txt`.
+  - Replaced fake 1,200ms `setTimeout` in `index.tsx` with real background upload and polling loop.
+  - Built an animated UI-thread progress bar using React Native Reanimated (`animate-expo` compliance).
+  - Eliminated Native Slop Tell #1 (Web `<Modal>`).
+- [x] `[P0]` **Automated Test Coverage (100% Pass Rate)**:
+  - 13 backend unit and API tests in `backend/tests/` verifying parser, PII sanitizer, and async polling via FastAPI `TestClient`.
+  - Mobile TypeScript build passing with 0 errors via `npx tsc --noEmit`.
+
+---
+
 ## 🚀 Sprint 6 — End-to-End Integration, Sound/Haptics & Polish (Days 12–14)
 - [ ] `[P0]` Connect live WhatsApp file export sharing via native Android intent / Share Sheet.
 - [ ] `[P0]` Real-time streaming token animation for Doctor Assify Coach responses.
 - [ ] `[P1]` Sound effects (subtle pop on card swipe, celebratory fanfare on Act 16 awards).
 - [ ] `[P1]` EAS build profile configuration (`eas.json`) for Android Play Store (`.aab`) bundle.
+
 
 
 

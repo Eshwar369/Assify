@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -8,14 +8,30 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import * as Haptics from 'expo-haptics';
+import * as DocumentPicker from 'expo-document-picker';
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withTiming,
+  Easing,
+} from 'react-native-reanimated';
 import { UploadCloud, CheckCircle2, ShieldCheck, Sparkles } from 'lucide-react-native';
 import { Colors, Radius, Typography, Spacing } from '../constants/theme';
 
+export interface PickedFileInfo {
+  uri: string;
+  name: string;
+  size?: number;
+  mimeType?: string;
+}
+
 interface WhatsAppDropzoneProps {
-  onFileSelect?: (file: { name: string; content?: string }) => void;
+  onFileSelect?: (file: PickedFileInfo) => void;
   vibeMode: 'therapy' | 'unhinged';
   onVibeModeChange: (mode: 'therapy' | 'unhinged') => void;
   isAnalyzing?: boolean;
+  progress?: number;
+  currentStep?: string;
 }
 
 export const WhatsAppDropzone: React.FC<WhatsAppDropzoneProps> = ({
@@ -23,21 +39,75 @@ export const WhatsAppDropzone: React.FC<WhatsAppDropzoneProps> = ({
   vibeMode,
   onVibeModeChange,
   isAnalyzing = false,
+  progress = 0,
+  currentStep = 'Preparing chat archive...',
 }) => {
   const [selectedFileName, setSelectedFileName] = useState<string | null>(null);
+  const [selectedFileSize, setSelectedFileSize] = useState<number | undefined>(undefined);
 
-  const handleSelectFile = () => {
+  // Animated progress bar on the UI thread (animate-expo compliance)
+  const animatedProgress = useSharedValue(0);
+
+  useEffect(() => {
+    if (isAnalyzing) {
+      const target = Math.min(100, Math.max(5, progress));
+      animatedProgress.set(
+        withTiming(target, {
+          duration: 400,
+          easing: Easing.bezier(0.23, 1, 0.32, 1),
+        })
+      );
+    } else {
+      animatedProgress.set(0);
+    }
+  }, [isAnalyzing, progress]);
+
+  const progressBarStyle = useAnimatedStyle(() => ({
+    width: `${animatedProgress.get()}%`,
+  }));
+
+  const handleSelectFile = async () => {
+    if (isAnalyzing) return;
+
     if (Platform.OS !== 'web') {
       try {
-        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+        await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
       } catch {
         // Haptics fallback
       }
     }
-    const mockFileName = '_chat_sleepless_zombiee.txt';
-    setSelectedFileName(mockFileName);
-    if (onFileSelect) {
-      onFileSelect({ name: mockFileName });
+
+    try {
+      const result = await DocumentPicker.getDocumentAsync({
+        type: ['text/plain', 'application/zip', 'application/x-zip-compressed'],
+        copyToCacheDirectory: true,
+        multiple: false,
+      });
+
+      if (!result.canceled && result.assets && result.assets.length > 0) {
+        const asset = result.assets[0];
+        setSelectedFileName(asset.name);
+        setSelectedFileSize(asset.size);
+
+        if (Platform.OS !== 'web') {
+          try {
+            await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+          } catch {
+            // Haptics fallback
+          }
+        }
+
+        if (onFileSelect) {
+          onFileSelect({
+            uri: asset.uri,
+            name: asset.name,
+            size: asset.size,
+            mimeType: asset.mimeType,
+          });
+        }
+      }
+    } catch (err) {
+      console.error('Document picker error:', err);
     }
   };
 
@@ -50,6 +120,13 @@ export const WhatsAppDropzone: React.FC<WhatsAppDropzoneProps> = ({
       }
     }
     onVibeModeChange(mode);
+  };
+
+  const formatFileSize = (bytes?: number) => {
+    if (!bytes) return '';
+    if (bytes < 1024) return `${bytes} B`;
+    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
   };
 
   return (
@@ -103,18 +180,36 @@ export const WhatsAppDropzone: React.FC<WhatsAppDropzoneProps> = ({
         style={[
           styles.dropzone,
           selectedFileName ? styles.dropzoneSelected : null,
+          isAnalyzing ? styles.dropzoneAnalyzing : null,
         ]}
       >
         {isAnalyzing ? (
           <View style={styles.analyzingWrapper}>
-            <ActivityIndicator size="small" color={Colors.accentGold} />
-            <Text style={styles.analyzingText}>Scrubbing PII & crunching latencies...</Text>
+            <View style={styles.analyzingHeaderRow}>
+              <View style={styles.analyzingBadge}>
+                <ActivityIndicator size="small" color={Colors.accentGold} style={{ marginRight: 6 }} />
+                <Text style={styles.analyzingBadgeText}>PROCESSING PIPELINE</Text>
+              </View>
+              <Text style={styles.progressPercentText}>{Math.round(progress)}%</Text>
+            </View>
+
+            {/* Native Reanimated Progress Bar */}
+            <View style={styles.progressBarTrack}>
+              <Animated.View style={[styles.progressBarFill, progressBarStyle]} />
+            </View>
+
+            <Text style={styles.currentStepText} numberOfLines={2}>
+              {currentStep}
+            </Text>
           </View>
         ) : selectedFileName ? (
           <View style={styles.selectedWrapper}>
             <CheckCircle2 size={32} color={Colors.systemGreen} />
             <Text style={styles.selectedText}>{selectedFileName}</Text>
-            <Text style={styles.selectedSub}>Tap to replace transcript</Text>
+            {selectedFileSize ? (
+              <Text style={styles.selectedSize}>{formatFileSize(selectedFileSize)}</Text>
+            ) : null}
+            <Text style={styles.selectedSub}>Tap to select a different chat export</Text>
           </View>
         ) : (
           <View style={styles.idleWrapper}>
@@ -222,18 +317,59 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(52, 199, 89, 0.04)',
     borderStyle: 'solid',
   },
+  dropzoneAnalyzing: {
+    borderColor: Colors.accentGold,
+    backgroundColor: 'rgba(191, 155, 40, 0.03)',
+    borderStyle: 'solid',
+    paddingVertical: 20,
+  },
   idleWrapper: {
     alignItems: 'center',
   },
   analyzingWrapper: {
-    alignItems: 'center',
-    paddingVertical: 12,
+    width: '100%',
+    paddingHorizontal: 8,
   },
-  analyzingText: {
-    fontSize: 13,
-    fontWeight: '600',
+  analyzingHeaderRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 10,
+  },
+  analyzingBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  analyzingBadgeText: {
+    fontSize: 11,
+    fontWeight: '700',
+    letterSpacing: 0.6,
+    color: Colors.accentGold,
+  },
+  progressPercentText: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: Colors.textPrimary,
+    fontVariant: ['tabular-nums'],
+  },
+  progressBarTrack: {
+    width: '100%',
+    height: 8,
+    borderRadius: Radius.full,
+    backgroundColor: Colors.borderHairline,
+    overflow: 'hidden',
+    marginBottom: 10,
+  },
+  progressBarFill: {
+    height: '100%',
+    backgroundColor: Colors.accentGold,
+    borderRadius: Radius.full,
+  },
+  currentStepText: {
+    fontSize: 12,
+    fontWeight: '500',
     color: Colors.textSecondary,
-    marginTop: 10,
+    textAlign: 'center',
   },
   selectedWrapper: {
     alignItems: 'center',
@@ -244,10 +380,16 @@ const styles = StyleSheet.create({
     color: Colors.textPrimary,
     marginTop: 8,
   },
+  selectedSize: {
+    fontSize: 11,
+    fontWeight: '500',
+    color: Colors.textTertiary,
+    marginTop: 2,
+  },
   selectedSub: {
     fontSize: 12,
     color: Colors.textTertiary,
-    marginTop: 2,
+    marginTop: 4,
   },
   iconCircle: {
     width: 44,

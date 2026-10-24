@@ -1,6 +1,7 @@
 import re
 import zipfile
 import io
+import hashlib
 from datetime import datetime
 from typing import List, Dict, Optional
 
@@ -88,15 +89,25 @@ def parse_timestamp(ts_str: str) -> Optional[datetime]:
     """
     ts_str = ts_str.strip().rstrip(",")
     formats = [
+        "%d/%m/%Y, %H:%M:%S",
+        "%d/%m/%y, %H:%M:%S",
         "%d/%m/%Y, %H:%M",
         "%d/%m/%y, %H:%M",
-        "%d/%m/%Y, %I:%M %p",
-        "%d/%m/%y, %I:%M %p",
         "%d/%m/%Y, %I:%M:%S %p",
         "%d/%m/%y, %I:%M:%S %p",
+        "%d/%m/%Y, %I:%M %p",
+        "%d/%m/%y, %I:%M %p",
+        "%m/%d/%Y, %H:%M:%S",
+        "%m/%d/%y, %H:%M:%S",
+        "%m/%d/%Y, %H:%M",
+        "%m/%d/%y, %H:%M",
+        "%m/%d/%Y, %I:%M:%S %p",
+        "%m/%d/%y, %I:%M:%S %p",
         "%m/%d/%Y, %I:%M %p",
         "%m/%d/%y, %I:%M %p",
+        "%Y-%m-%d, %H:%M:%S",
         "%Y-%m-%d, %H:%M",
+        "%Y/%m/%d, %H:%M:%S",
         "%Y/%m/%d, %H:%M",
     ]
     for fmt in formats:
@@ -159,7 +170,7 @@ def parse_whatsapp(
 
             is_question = "?" in content
 
-            msg_id = f"{contact_id}_{line_num}_{abs(hash(raw_ts + content)) % 1000000}"
+            msg_id = f"{contact_id}_{line_num}_{hashlib.md5((raw_ts + content).encode('utf-8')).hexdigest()[:8]}"
 
             current_msg = {
                 "id": msg_id,
