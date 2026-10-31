@@ -1,0 +1,18 @@
+[importlinter]
+root_packages =
+    backend
+include_external_packages = True
+
+[importlinter:contract:forbid-direct-external-dependencies]
+name = Forbid direct imports of openai and sqlite3 in api, profiler, analytics, coach, and replies
+type = forbidden
+source_modules =
+    backend.api
+    backend.profiler
+    backend.analytics
+    backend.coach
+    backend.replies
+forbidden_modules =
+    openai
+    sqlite3
+allow_indirect_imports = True
