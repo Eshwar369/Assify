@@ -25,7 +25,7 @@ Assify is an objective, razor-sharp, and culturally grounded forensic chat intel
 ### 2.1 Primary User Persona
 - **Demographic:** Gen Z & Millennials (Ages 18–32).
 - **Context:** Navigating ambiguous dating phases, talking stages, "situationships," post-breakup post-mortems, or testing relationship health.
-- **Key Pain Point:** Asymmetric emotional investment and difficulty identifying whether a romantic prospect is genuinely invested or emotionally evasive.
+- **Key Pain Point:** difficulty identifying whether a romantic prospect is genuinely invested or emotionally evasive.
 - **Usage Frequency:** High-frequency event-driven usage (after an ambiguous text exchange, an unanswered double-text, a sudden silence seam, or a talking stage milestone).
 
 ### 2.2 Core Operational Scenarios
