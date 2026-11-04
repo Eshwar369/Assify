@@ -1,0 +1,33 @@
+#!/usr/bin/env bash
+# Assify Commit Message Hook
+# Enforces Conventional Commits standards (e.g., feat: ..., fix: ..., chore: ...)
+
+COMMIT_MSG_FILE=$1
+COMMIT_MSG=$(cat "$COMMIT_MSG_FILE")
+
+# Allow merge commits or empty messages (git handles empty)
+if echo "$COMMIT_MSG" | grep -E -q '^(Merge branch|Revert|Initial commit)'; then
+    exit 0
+fi
+
+# Conventional Commits regex pattern
+CONVENTIONAL_PATTERN="^(feat|fix|docs|style|refactor|perf|test|build|ci|chore|revert)(\([a-zA-Z0-9_-]+\))?!?: .+"
+
+FIRST_LINE=$(echo "$COMMIT_MSG" | head -n 1)
+
+if ! echo "$FIRST_LINE" | grep -E -q "$CONVENTIONAL_PATTERN"; then
+    echo "❌ INVALID COMMIT MESSAGE FORMAT:"
+    echo "   \"$FIRST_LINE\""
+    echo ""
+    echo "Commit messages must follow the Conventional Commits specification:"
+    echo "   <type>(<optional scope>): <description>"
+    echo ""
+    echo "Allowed types: feat, fix, docs, style, refactor, perf, test, build, ci, chore, revert"
+    echo "Example:"
+    echo "   feat(parser): add 1-on-1 participant validation"
+    echo "   docs(sdd): update constitution principles"
+    echo "   chore(deps): update expo sdk to v54"
+    exit 1
+fi
+
+exit 0

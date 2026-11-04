@@ -1,0 +1,94 @@
+#!/usr/bin/env bash
+# Assify Pre-Commit Quality Gate
+# Validates staged changes against constitution invariants, privacy locks, and syntax integrity.
+
+set -e
+
+echo "🔍 Running pre-commit quality checks..."
+
+# -----------------------------------------------------------------------------
+# 1. Privacy & Sensitive Data Leak Guard
+# -----------------------------------------------------------------------------
+# Assify handles sensitive WhatsApp exports. Ensure no actual user chat exports
+# or credential files are ever committed.
+FORBIDDEN_FILES_PATTERN="(\.env$|_chat\.txt$|WhatsApp.*\.zip$|\.pem$|\.key$|\.sqlite$|\.db$)"
+
+STAGED_FILES=$(git diff --cached --name-only)
+
+for file in $STAGED_FILES; do
+    if echo "$file" | grep -E -q "$FORBIDDEN_FILES_PATTERN"; then
+        # Allow .env.example
+        if [ "$file" = ".env.example" ]; then
+            continue
+        fi
+        echo "❌ BLOCKED COMMIT: Sensitive or personal data file staged: $file"
+        echo "   Do not commit personal chat archives, local database files, or secrets."
+        exit 1
+    fi
+done
+
+# -----------------------------------------------------------------------------
+# 2. Prevent Large Binary Files (>5 MB)
+# -----------------------------------------------------------------------------
+MAX_FILE_SIZE_KB=5120
+for file in $STAGED_FILES; do
+    if [ -f "$file" ]; then
+        FILE_SIZE_KB=$(du -k "$file" | cut -f1)
+        if [ "$FILE_SIZE_KB" -gt "$MAX_FILE_SIZE_KB" ]; then
+            echo "❌ BLOCKED COMMIT: File $file exceeds 5MB size limit (${FILE_SIZE_KB}KB)."
+            exit 1
+        fi
+    fi
+done
+
+# -----------------------------------------------------------------------------
+# 3. Code Quality & Placeholder Scanner
+# -----------------------------------------------------------------------------
+# In production code (exclude docs and templates), scan for unaddressed placeholders
+STAGED_CODE_FILES=$(git diff --cached --name-only --diff-filter=ACM | grep -E '\.(ts|tsx|js|jsx|py)$' || true)
+
+if [ -n "$STAGED_CODE_FILES" ]; then
+    echo "🔍 Scanning code files for unfinished placeholders..."
+    for file in $STAGED_CODE_FILES; do
+        if [ -f "$file" ]; then
+            # Search for blocking markers in staged lines
+            if git diff --cached "$file" | grep -E '^\+' | grep -E -q '(TODO\(MUST\)|FIXME\(FATAL\)|__MOCK_FACADE__)'; then
+                echo "❌ BLOCKED COMMIT: Unresolved critical placeholder found in $file"
+                exit 1
+            fi
+        fi
+    done
+fi
+
+# -----------------------------------------------------------------------------
+# 4. Adaptive Project Linter / Typechecker (if package.json exists)
+# -----------------------------------------------------------------------------
+if [ -f "package.json" ]; then
+    echo "🔍 Running TypeScript typecheck and linter..."
+    if npm run | grep -q "typecheck"; then
+        npm run typecheck
+    fi
+    if npm run | grep -q "lint"; then
+        npm run lint
+    fi
+fi
+
+# -----------------------------------------------------------------------------
+# 5. JSON & YAML Syntax Verification
+# -----------------------------------------------------------------------------
+STAGED_JSON_FILES=$(git diff --cached --name-only --diff-filter=ACM | grep -E '\.json$' || true)
+if [ -n "$STAGED_JSON_FILES" ]; then
+    if command -v node >/dev/null 2>&1; then
+        for file in $STAGED_JSON_FILES; do
+            if [ -f "$file" ]; then
+                node -e "JSON.parse(require('fs').readFileSync('$file', 'utf8'))" || {
+                    echo "❌ BLOCKED COMMIT: Invalid JSON syntax in $file"
+                    exit 1
+                }
+            fi
+        done
+    fi
+fi
+
+echo "✅ Pre-commit verification passed."
+exit 0

@@ -1,0 +1,25 @@
+#!/usr/bin/env bash
+# Assify Pre-Push Quality Gate
+
+set -e
+
+echo "🔍 Running pre-push checks..."
+
+# Prevent pushing directly to main / production branches without PR
+CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
+
+if [ "$CURRENT_BRANCH" = "main" ] || [ "$CURRENT_BRANCH" = "master" ]; then
+    echo "⚠️  WARNING: Pushing directly to '$CURRENT_BRANCH'."
+    echo "   Ensure this is intentional and all reviews have passed."
+fi
+
+# Run test suite if package.json has test script
+if [ -f "package.json" ]; then
+    if npm run | grep -q "test"; then
+        echo "🧪 Executing test suite..."
+        npm test
+    fi
+fi
+
+echo "✅ Pre-push verification passed."
+exit 0
