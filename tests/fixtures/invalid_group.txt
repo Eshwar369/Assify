@@ -1,0 +1,10 @@
+[12/04/24, 18:30:15] Messages and calls are end-to-end encrypted. No one outside of this chat, not even WhatsApp, can read or listen to them.
+[12/04/24, 18:31:00] Alex: Hey team, welcome to the group!
+[12/04/24, 18:32:00] Jordan: Excited to collaborate on this.
+[12/04/24, 18:33:00] Morgan: Hey everyone, Morgan here!
+[12/04/24, 18:34:00] Alex: Let's sync up on project milestones.
+[12/04/24, 18:35:00] Jordan: Sounds great, I have the drafts ready.
+[12/04/24, 18:36:00] Morgan: I will review by EOD.
+[12/04/24, 18:37:00] Alex: Awesome.
+[12/04/24, 18:38:00] Jordan: Shared in the drive.
+[12/04/24, 18:39:00] Morgan: Got it!

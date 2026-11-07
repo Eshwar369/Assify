@@ -1,0 +1,8 @@
+[12/04/24, 18:30:15] Messages and calls are end-to-end encrypted.
+[12/04/24, 18:31:00] Alex: Hey Jordan!
+[12/04/24, 18:32:00] Jordan: Hey!
+[12/04/24, 18:33:00] Alex: Quick question, did you get my email?
+[12/04/24, 18:34:00] Jordan: Yes, checking it now.
+[12/04/24, 18:35:00] Alex: Thanks!
+[12/04/24, 18:36:00] Jordan: Looks good to go.
+[12/04/24, 18:37:00] Alex: Great.

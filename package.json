@@ -1,0 +1,9 @@
+{
+  "name": "assify",
+  "version": "2.0.0",
+  "description": "Assify forensic chat intelligence engine",
+  "type": "module",
+  "scripts": {
+    "test": "node --experimental-strip-types --test tests/**/*.test.ts"
+  }
+}
