@@ -1,0 +1,11 @@
+{
+  "assify-session-start": {
+    "SessionStart": [
+      {
+        "type": "command",
+        "command": "powershell -NoProfile -File .agents/scripts/session-start.ps1",
+        "timeout": 10
+      }
+    ]
+  }
+}

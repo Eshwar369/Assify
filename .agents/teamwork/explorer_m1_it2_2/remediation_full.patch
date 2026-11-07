@@ -1,0 +1,175 @@
+--- a/docs/templates/sdd/generic/plan.md
++++ b/docs/templates/sdd/generic/plan.md
+@@ -1,6 +1,6 @@
+ # Implementation Plan: [FEATURE]
+ 
+-**Branch**: `[###-feature-name]` | **Date**: [DATE] | **Spec**: [specs/[###-feature-name]/spec.md]  
++**Branch**: `[###-feature-name]` | **Date**: [DATE] | **Spec**: `specs/[###-feature-name]/spec.md`  
+ **Input**: Feature specification from `/specs/[###-feature-name]/spec.md`  
+ 
+ <!--
+--- a/docs/templates/sdd/generic/tasks.md
++++ b/docs/templates/sdd/generic/tasks.md
+@@ -2,7 +2,7 @@
+ description: "Task list template for feature implementation"
+ ---
+ 
+-# Tasks: [FEATURE NAME]
++# Tasks: [FEATURE_NAME]
+ 
+ **Input**: Design documents from `/specs/[###-feature-name]/`  
+ **Prerequisites**: `plan.md` (required), `spec.md` (required for user stories), `research.md`, `data-model.md`, `contracts/`  
+@@ -35,6 +35,12 @@
+ - **`[Story]`**: User story identifier (`[US1]`, `[US2]`). **Mandatory in User Story phases; forbidden in Setup, Foundational, and Polish phases**.
+ - **`Description & File Path`**: Precise action description containing the exact relative filesystem path to create or modify.
+ 
++### Reserved Task Syntax Flags vs. Template Placeholders
++
++- **Reserved Structural Syntax Flags**: `[P]` (parallel execution marker) and `[US#]` (user story traceability markers, e.g., `[US1]`, `[US2]`, `[US3]`) are functional execution grammar flags parsed by SDD tooling. Autonomous agents and templating tools **MUST NOT** treat them as unpopulated placeholders, and **MUST NOT** substitute, rename, or strip them during template instantiation.
++- **Template Substitution Variables**: Placeholders enclosed in brackets matching uppercase conventions (e.g., `[PROJECT_ROOT]`, `[CONFIG_FILE]`, `[ENTITY_NAME]`, `[SERVICE_NAME]`, `[COMPONENT_NAME]`, `[SCREEN_NAME]`) **MUST** be replaced with concrete project-specific names.
++- **Flag-Safe Extraction Regex**: Parsers extracting unpopulated placeholders **MUST** use negative lookahead to exclude reserved flags: `\[(?!(?:P|US\d+)\b)([A-Z0-9_]+)\]`.
++
+ ## Path Conventions
+ 
+ - **Single Project**: `src/`, `tests/` at repository root
+@@ -78,14 +84,14 @@
+ ### Tests for User Story 1 (TDD Red Phase)
+ > **NOTE: Write these tests FIRST; verify they FAIL with assertion errors before implementation**
+ 
+-- [ ] T009 [P] [US1] Unit test for domain validation logic in `tests/unit/test_[entity].ts`
+-- [ ] T010 [P] [US1] Contract test for service interface per `contracts/` in `tests/contract/test_[service].ts`
++- [ ] T009 [P] [US1] Unit test for domain validation logic in `tests/unit/test_[ENTITY_NAME].ts`
++- [ ] T010 [P] [US1] Contract test for service interface per `contracts/` in `tests/contract/test_[SERVICE_NAME].ts`
+ 
+ ### Implementation for User Story 1 (TDD Green Phase)
+-- [ ] T011 [P] [US1] Create domain entity data model with strict validation in `src/models/[entity].ts`
+-- [ ] T012 [US1] Implement core service business logic in `src/services/[service].ts` (depends on T011)
+-- [ ] T013 [P] [US1] Implement shared UI layout primitive in `src/components/ui/[Component].tsx`
+-- [ ] T014 [US1] Wire component into screen route and application state in `src/routes/[Screen].tsx` (depends on T012, T013)
++- [ ] T011 [P] [US1] Create domain entity data model with strict validation in `src/models/[ENTITY_NAME].ts`
++- [ ] T012 [US1] Implement core service business logic in `src/services/[SERVICE_NAME].ts` (depends on T011)
++- [ ] T013 [P] [US1] Implement shared UI layout primitive in `src/components/ui/[COMPONENT_NAME].tsx`
++- [ ] T014 [US1] Wire component into screen route and application state in `src/routes/[SCREEN_NAME].tsx` (depends on T012, T013)
+ 
+ **Checkpoint**: At this point, User Story 1 MUST be fully functional and testable independently. Stop and validate the working MVP!
+ 
+@@ -97,13 +103,13 @@
+ **Independent Test**: [Concrete verification for User Story 2]  
+ 
+ ### Tests for User Story 2 (TDD Red Phase)
+-- [ ] T015 [P] [US2] Contract test for secondary service interface in `tests/contract/test_[service2].ts`
+-- [ ] T016 [P] [US2] Integration test exercising User Story 2 journey in `tests/integration/test_[journey2].ts`
++- [ ] T015 [P] [US2] Contract test for secondary service interface in `tests/contract/test_[SERVICE2_NAME].ts`
++- [ ] T016 [P] [US2] Integration test exercising User Story 2 journey in `tests/integration/test_[JOURNEY2_NAME].ts`
+ 
+ ### Implementation for User Story 2 (TDD Green Phase)
+-- [ ] T017 [P] [US2] Create secondary domain entity model in `src/models/[entity2].ts`
+-- [ ] T018 [US2] Implement secondary service logic in `src/services/[service2].ts` (depends on T017)
+-- [ ] T019 [US2] Integrate secondary capability into user interface in `src/components/[View].tsx`
++- [ ] T017 [P] [US2] Create secondary domain entity model in `src/models/[ENTITY2_NAME].ts`
++- [ ] T018 [US2] Implement secondary service logic in `src/services/[SERVICE2_NAME].ts` (depends on T017)
++- [ ] T019 [US2] Integrate secondary capability into user interface in `src/components/[VIEW_NAME].tsx`
+ 
+ **Checkpoint**: At this point, User Stories 1 AND 2 should both function independently without regressions.
+ 
+@@ -115,11 +121,11 @@
+ **Independent Test**: [Concrete verification for User Story 3]  
+ 
+ ### Tests for User Story 3 (TDD Red Phase)
+-- [ ] T020 [P] [US3] Unit test for edge case scenario in `tests/unit/test_[scenario3].ts`
++- [ ] T020 [P] [US3] Unit test for edge case scenario in `tests/unit/test_[SCENARIO3_NAME].ts`
+ 
+ ### Implementation for User Story 3 (TDD Green Phase)
+-- [ ] T021 [US3] Implement enhancement service logic in `src/services/[enhancement].ts`
+-- [ ] T022 [US3] Connect enhancement trigger to navigation screen in `src/routes/[Screen].tsx`
++- [ ] T021 [US3] Implement enhancement service logic in `src/services/[ENHANCEMENT_NAME].ts`
++- [ ] T022 [US3] Connect enhancement trigger to navigation screen in `src/routes/[SCREEN_NAME].tsx`
+ 
+ **Checkpoint**: All specified user stories are functional and testable.
+ 
+@@ -129,35 +135,10 @@
+ 
+ **Purpose**: System-wide hardening, non-functional optimizations, and end-to-end verification.
+ 
+-- [ ] T023 [P] Add structured telemetry and performance metrics in `src/telemetry/[logger].ts`
++- [ ] T023 [P] Add structured telemetry and performance metrics in `src/telemetry/[LOGGER_NAME].ts`
+ - [ ] T024 [P] Verify documentation and API schemas are synchronized in `docs/`
+ - [ ] T025 Run full automated test suite and verify end-to-end flow per `quickstart.md`
+-- [ ] T026 Execute production build and bundle size verification
+-
+----
+-
+-## Phase N+1: Append-Only Convergence
+-
+-<!--
+-  ============================================================================
+-  THE APPEND-ONLY CONVERGENCE LOOP:
+-  ----------------------------------------------------------------------------
+-  Executed by /speckit-converge post-implementation.
+-  NEVER rewrite or alter completed tasks above. If the convergence audit
+-  detects gaps between code reality and spec intent, append new tasks below.
+-
+-  Gap Classifications:
+-  - (missing): Requirement completely omitted from codebase.
+-  - (partial): Feature implemented but fails an edge case or acceptance criteria.
+-  - (contradicts): Code directly violates a specification or constitutional clause.
+-  - (unrequested): Unprompted code or unapproved library introduced.
+-  ============================================================================
+--->
+-
+-<!-- EXAMPLE OF APPENDED CONVERGENCE TASKS (Uncomment if gaps are discovered):
+-- [ ] T027 Remediate missing edge case per FR-004 (partial) in `src/services/[service].ts`
+-- [ ] T028 Fix constitutional boundary violation (contradicts) in `src/routes/[Screen].tsx`
+--->
++- [ ] T026 Execute production build and bundle size verification in `package.json`
+ 
+ ---
+ 
+@@ -186,12 +167,12 @@
+ 
+ ```bash
+ # Launch parallel test generation for User Story 1:
+-Agent 1: "Write unit test in tests/unit/test_[entity].ts" (T009)
+-Agent 2: "Write contract test in tests/contract/test_[service].ts" (T010)
++Agent 1: "Write unit test in tests/unit/test_[ENTITY_NAME].ts" (T009)
++Agent 2: "Write contract test in tests/contract/test_[SERVICE_NAME].ts" (T010)
+ 
+ # Launch parallel model and UI primitive implementation:
+-Agent 1: "Create entity model in src/models/[entity].ts" (T011)
+-Agent 2: "Implement UI primitive in src/components/ui/[Component].tsx" (T013)
++Agent 1: "Create entity model in src/models/[ENTITY_NAME].ts" (T011)
++Agent 2: "Implement UI primitive in src/components/ui/[COMPONENT_NAME].tsx" (T013)
+ ```
+ 
+ ---
+@@ -226,3 +207,30 @@
+ 4. TDD DISCIPLINE: For test tasks, you MUST verify that the newly written test FAILS before
+    proceeding to the implementation task.
+ ```
++
++---
++
++## Phase N+1: Append-Only Convergence
++
++<!--
++  ============================================================================
++  THE APPEND-ONLY CONVERGENCE LOOP:
++  ----------------------------------------------------------------------------
++  Executed by /speckit-converge post-implementation.
++  NEVER rewrite or alter completed tasks above. If the convergence audit
++  detects gaps between code reality and spec intent, append new tasks below.
++
++  Gap Classifications:
++  - (missing): Requirement completely omitted from codebase.
++  - (partial): Feature implemented but fails an edge case or acceptance criteria.
++  - (contradicts): Code directly violates a specification or constitutional clause.
++  - (unrequested): Unprompted code or unapproved library introduced.
++  ============================================================================
++-->
++
++<!-- EXAMPLE OF APPENDED CONVERGENCE TASKS (Uncomment if gaps are discovered):
++- [ ] T027 Remediate missing edge case per FR-004 (partial) in `src/services/[SERVICE_NAME].ts`
++- [ ] T028 Fix constitutional boundary violation (contradicts) in `src/routes/[SCREEN_NAME].tsx`
++-->
++
++---

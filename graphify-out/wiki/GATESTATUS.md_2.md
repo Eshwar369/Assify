@@ -1,0 +1,27 @@
+# GATESTATUS.md
+
+> 3 nodes · cohesion 0.67
+
+## Key Concepts
+
+- **Gate Status Tracking** (2 connections) — `.agents/teamwork/orchestrator_2/GATE_STATUS.md`
+- **orchestrator_2/GATE_STATUS.md** (1 connections) — `.agents/teamwork/orchestrator_2/GATE_STATUS.md`
+- **Gate — Iteration 1 (Milestone 1: Research Synthesis & Generic Templates)** (1 connections) — `.agents/teamwork/orchestrator_2/GATE_STATUS.md`
+
+## Relationships
+
+- No strong cross-community connections detected
+
+## Source Files
+
+- `.agents/teamwork/orchestrator_2/GATE_STATUS.md`
+
+## Audit Trail
+
+- EXTRACTED: 2 (100%)
+- INFERRED: 0 (0%)
+- AMBIGUOUS: 0 (0%)
+
+---
+
+*Part of the graphify knowledge wiki. See [index](index.md) to navigate.*
